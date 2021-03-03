@@ -110,21 +110,13 @@ public class View {
         		for(int i = 0; i < tabbedPane.getTabCount(); i++) {
         			if(tabbedPane.getTitleAt(i).equals(path.getName())) {
         				tabbedPane.setSelectedIndex(i);
-        				break;
-        			}
-        			else {
-        				tabbedPane.addTab(path.getName(), (Component) newPanels.keySet().toArray()[newPanels.size()-1]);
-                		Main.createModel(path, ((TablePanel) newPanels.keySet().toArray()[newPanels.size()-1]).getTable());
-                		tabbedPane.setSelectedIndex(tabbedPane.getTabCount() - 1);
-                		break;
+        				return;
         			}
         		}
     		}
-    		else {
-    			tabbedPane.addTab(path.getName(), (Component) newPanels.keySet().toArray()[newPanels.size()-1]);
-        		Main.createModel(path, ((TablePanel) newPanels.keySet().toArray()[newPanels.size()-1]).getTable());
-        		tabbedPane.setSelectedIndex(tabbedPane.getTabCount() - 1);
-    		}
+			tabbedPane.addTab(path.getName(), (Component) newPanels.keySet().toArray()[newPanels.size()-1]);
+    		Main.createModel(path, ((TablePanel) newPanels.keySet().toArray()[newPanels.size()-1]).getTable());
+    		tabbedPane.setSelectedIndex(tabbedPane.getTabCount() - 1);
         }
 	}
 	
