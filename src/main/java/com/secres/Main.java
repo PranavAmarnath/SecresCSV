@@ -26,6 +26,10 @@ public class Main {
 		new Model(PATH, table);
 	}
 	
+	public static void saveModel(String PATH, JTable table) {
+		Model.save(PATH, table);
+	}
+	
 	public static void createView() {
 		new View();
 	}

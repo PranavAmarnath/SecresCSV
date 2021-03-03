@@ -3,5 +3,6 @@ com\secres\Main.class
 com\secres\View.class
 com\secres\Model.class
 com\secres\View$TablePanel.class
+com\secres\Model$2.class
 com\secres\RowNumberTable$RowNumberRenderer.class
 com\secres\RowNumberTable.class

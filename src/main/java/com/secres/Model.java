@@ -6,11 +6,14 @@ import com.opencsv.exceptions.CsvValidationException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 
+import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
 
 /**
  * The <code>Model</code> class defines all I/O from the CSV files.
@@ -39,6 +42,7 @@ public class Model {
 	/**
 	 * Model constructor
 	 * @param path  Path to file
+	 * @param table  The table
 	 */
 	public Model(File path, JTable table) {
 		new SwingWorker<Void, String>() {
@@ -74,12 +78,51 @@ public class Model {
 			@Override
 			protected void done() {
 				try {
+					JOptionPane.showMessageDialog(View.getFrame(), "Finished loading data.");
 					reader.close();
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
 			}
 		}.execute();
+	}
+	
+	public static void save(String path, JTable table) {
+		new SwingWorker<Void, String>() {
+			@Override
+			protected Void doInBackground() {
+				exportToCSV(path, table);
+				return null;
+			}
+			@Override
+			protected void done() {
+				JOptionPane.showMessageDialog(View.getFrame(), "Finished saving file.");
+			}
+		}.execute();
+	}
+	
+	public static void exportToCSV(String pathToExportTo, JTable tableToExport) {
+	    try {
+	        TableModel model = tableToExport.getModel();
+	        FileWriter csv = new FileWriter(new File(pathToExportTo));
+
+	        for(int i = 0; i < model.getColumnCount(); i++) {
+	            csv.write(model.getColumnName(i) + ",");
+	        }
+
+	        csv.write("\n");
+
+	        for(int i = 0; i < model.getRowCount(); i++) {
+	            for(int j = 0; j < model.getColumnCount(); j++) {
+	                csv.write(model.getValueAt(i, j).toString() + ",");
+	            }
+	            csv.write("\n");
+	        }
+
+	        csv.close();
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	    }
 	}
 	
 	/**
