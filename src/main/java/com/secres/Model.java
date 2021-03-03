@@ -20,9 +20,8 @@ import javax.swing.table.TableModel;
  * <P>
  * Each instance of <code>Model</code> spawns a new {@link SwingWorker} for adding each new row to the current <code>JTable</code>'s <code>TableModel</code>
  * <P>
- * After starting and finishing ALL reads, the <code>Model</code> notifies {@link Main}.<br>
- * 1. After <i>starting</i> the last read, {@link Main} creates a new instance of {@link View}.<br>
- * 2. After <i>finishing</i> the last read, {@link Main} starts updating each <code>JFreeChart</code> for each <code>ChartPanel</code> that {@link View} created.
+ * 
+ * The class also manages exporting table data to a CSV file.
  * 
  * @author Pranav Amarnath
  *
@@ -51,16 +50,13 @@ public class Model {
 				try {
 					reader = new CSVReader(new FileReader(path));
 				} catch (FileNotFoundException e1) {
-					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
 				try {
 					header = (String[]) reader.readNext();
 				} catch (CsvValidationException e1) {
-					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				} catch (IOException e1) {
-					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
 				//SwingUtilities.invokeAndWait(() -> model = new DefaultTableModel(header, 0)); // NOT invokeLater() because model HAS to be initialized immediately on EDT
