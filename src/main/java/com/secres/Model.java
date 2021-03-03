@@ -107,14 +107,24 @@ public class Model {
 	        FileWriter csv = new FileWriter(new File(pathToExportTo));
 
 	        for(int i = 0; i < model.getColumnCount(); i++) {
-	            csv.write(model.getColumnName(i) + ",");
+	        	if(i != model.getColumnCount() - 1) {
+	        		csv.write(model.getColumnName(i) + ",");
+	        	}
+	        	else {
+	        		csv.write(model.getColumnName(i));
+	        	}
 	        }
 
 	        csv.write("\n");
 
 	        for(int i = 0; i < model.getRowCount(); i++) {
 	            for(int j = 0; j < model.getColumnCount(); j++) {
-	                csv.write(model.getValueAt(i, j).toString() + ",");
+	            	if(j != model.getColumnCount() - 1) {
+	            		csv.write(model.getValueAt(i, j).toString() + ",");
+	            	}
+	            	else {
+	            		csv.write(model.getValueAt(i, j).toString());
+	            	}
 	            }
 	            csv.write("\n");
 	        }

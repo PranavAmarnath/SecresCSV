@@ -64,7 +64,7 @@ public class View {
 			details.actionPerformed(null);
 
 			if(newPanels.get(tabbedPane.getSelectedComponent()) != null) {
-				fileChooser.setCurrentDirectory(newPanels.get(tabbedPane.getComponentAt(tabbedPane.getSelectedIndex())));
+				fileChooser.setCurrentDirectory(newPanels.get(tabbedPane.getSelectedComponent()));
 			}
 
 			int returnVal = fileChooser.showOpenDialog(frame);
@@ -105,7 +105,7 @@ public class View {
 				details.actionPerformed(null);
 				
 				if(newPanels.get(tabbedPane.getSelectedComponent()) != null) {
-					fileChooser.setCurrentDirectory(newPanels.get(tabbedPane.getComponentAt(tabbedPane.getSelectedIndex())));
+					fileChooser.setCurrentDirectory(newPanels.get(tabbedPane.getSelectedComponent()));
 				}
 				
 				if(tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).contains("New")) {
@@ -145,17 +145,20 @@ public class View {
 		tabbedPane.putClientProperty("JTabbedPane.showTabSeparators", true);
 		tabbedPane.putClientProperty("JTabbedPane.tabCloseCallback", (BiConsumer<JTabbedPane, Integer>) (tabbedPane, tabIndex) -> {
 	        // close tab here
-	        tabbedPane.removeTabAt(tabIndex);
-	        if(tabbedPane.getTabCount() == 0) {
-	        	tabNewIndex++;
-	        	TablePanel temp = new TablePanel();
-				DefaultTableModel model = new DefaultTableModel(20, 20);
-				for(int i = 0; i < EMPTY_ROW_COUNT; i++) {
-					model.addRow(new Object[] { });
-				}
-				temp.getTable().setModel(model);
-	        	tabbedPane.addTab("New" + tabNewIndex, temp);
-	        }
+			int result = JOptionPane.showConfirmDialog(frame, "Are you sure you want to close this file?", "Close", JOptionPane.YES_NO_OPTION);
+		    if(result == JOptionPane.YES_OPTION) {
+				tabbedPane.removeTabAt(tabIndex);
+		        if(tabbedPane.getTabCount() == 0) {
+		        	tabNewIndex++;
+		        	TablePanel temp = new TablePanel();
+					DefaultTableModel model = new DefaultTableModel(20, 20);
+					for(int i = 0; i < EMPTY_ROW_COUNT; i++) {
+						model.addRow(new Object[] { });
+					}
+					temp.getTable().setModel(model);
+		        	tabbedPane.addTab("New" + tabNewIndex, temp);
+		        }
+		    }
 	    });
 		tabbedPane.putClientProperty("JTabbedPane.tabCloseToolTipText", "Close");
 		
