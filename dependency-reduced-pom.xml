@@ -5,7 +5,7 @@
   <artifactId>secrescsv</artifactId>
   <name>SecresCSV</name>
   <version>1.0-SNAPSHOT</version>
-  <description>CSV Opener for Large CSV files</description>
+  <description>CSV Viewer and Editor for Large CSV files</description>
   <build>
     <plugins>
       <plugin>

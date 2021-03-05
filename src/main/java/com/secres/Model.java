@@ -2,6 +2,7 @@ package com.secres;
 
 import com.opencsv.*;
 import com.opencsv.exceptions.CsvValidationException;
+import com.secres.View.TablePanel;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -11,6 +12,7 @@ import java.io.IOException;
 
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
+import javax.swing.JTextPane;
 import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
@@ -43,21 +45,21 @@ public class Model {
 	 * @param path  Path to file
 	 * @param table  The table
 	 */
-	public Model(File path, JTable table) {
+	public Model(File path, JTable table, boolean refresh) {
 		new SwingWorker<Void, String>() {
 			@Override
 			protected Void doInBackground() {
 				try {
 					reader = new CSVReader(new FileReader(path));
 				} catch (FileNotFoundException e1) {
-					e1.printStackTrace();
+					showError("File Not Found :(", e1);
 				}
 				try {
 					header = (String[]) reader.readNext();
 				} catch (CsvValidationException e1) {
-					e1.printStackTrace();
+					showError("CSV Not Validated :(", e1);
 				} catch (IOException e1) {
-					e1.printStackTrace();
+					showError("I/O Exception :(", e1);
 				}
 				//SwingUtilities.invokeAndWait(() -> model = new DefaultTableModel(header, 0)); // NOT invokeLater() because model HAS to be initialized immediately on EDT
 				model = new DefaultTableModel(header, 0);
@@ -67,17 +69,23 @@ public class Model {
 						model.addRow(line);
 				    }
 				} catch(Exception e) {
-					e.printStackTrace();
+					showError("An Exception Occurred :(", e);
 				}
 				return null;
 			}
 			@Override
 			protected void done() {
 				try {
-					JOptionPane.showMessageDialog(View.getFrame(), "Finished loading data.");
+					if(refresh == true) {
+						((TablePanel) View.getTabbedPane().getSelectedComponent()).getTable().setModel(model);
+						JOptionPane.showMessageDialog(View.getFrame(), "Refreshed data.");
+					}
+					else {
+						JOptionPane.showMessageDialog(View.getFrame(), "Finished loading data.");
+					}
 					reader.close();
 				} catch (IOException e) {
-					e.printStackTrace();
+					showError("I/O Exception :(", e);
 				}
 			}
 		}.execute();
@@ -127,8 +135,14 @@ public class Model {
 
 	        csv.close();
 	    } catch (IOException e) {
-	        e.printStackTrace();
+	    	showError("I/O Exception :(", e);
 	    }
+	}
+	
+	private static void showError(String title, Exception e) {
+		JTextPane textPane = new JTextPane();
+		textPane.setText(e.getMessage());
+		JOptionPane.showMessageDialog(View.getFrame(), textPane, title, JOptionPane.ERROR_MESSAGE);
 	}
 	
 	/**

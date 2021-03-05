@@ -23,7 +23,6 @@ public class RowNumberTable extends JTable implements ChangeListener, PropertyCh
 		setAutoCreateColumnsFromModel(false);
 		setSelectionModel(main.getSelectionModel());
 
-
 		TableColumn column = new TableColumn();
 		column.setHeaderValue(" ");
 		addColumn(column);
