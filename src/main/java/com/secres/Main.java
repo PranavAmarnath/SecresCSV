@@ -42,7 +42,7 @@ public class Main {
 		Model.save(PATH, table);
 	}
 	
-	public static void createView() {
+	public void createView() {
 		new View();
 	}
 
