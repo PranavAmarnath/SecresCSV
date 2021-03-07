@@ -1,6 +1,6 @@
 # SecresCSV
 
-### A GUI for opening/viewing, editing, and/or saving (beta) multiple CSV files at a time in tabular format.
+### A GUI for opening/viewing, editing, printing, and/or saving (beta) multiple CSV files at a time in tabular format.
 #### The application can handle longer lines than Microsoft Excel<sup>1</sup>.
 
 The purpose of this application is to view large CSV files to understand the data prior to data analysis.<p>
