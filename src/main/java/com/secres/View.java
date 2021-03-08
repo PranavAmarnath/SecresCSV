@@ -4,7 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Toolkit;
-import java.awt.event.KeyEvent;
 import java.awt.print.PrinterException;
 import java.io.File;
 import java.text.MessageFormat;
@@ -13,7 +12,6 @@ import java.util.function.BiConsumer;
 
 import javax.swing.Action;
 import javax.swing.ButtonGroup;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -30,7 +28,6 @@ import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
 import javax.swing.JTable.PrintMode;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
@@ -73,9 +70,6 @@ public class View {
 	        // close tab here
         	openSaveDialog();
 			tabbedPane.removeTabAt(tabIndex);
-			if(tabbedPane.getTabCount() == 0) {
-				disableItems();
-			}
 	    });
 		tabbedPane.putClientProperty("JTabbedPane.tabCloseToolTipText", "Close");
 		
@@ -84,6 +78,13 @@ public class View {
 		
 		createMenuBar();
 		createToolBar();
+		
+		tabbedPane.addChangeListener(e -> {
+			int tabCount = tabbedPane.getTabCount();
+			boolean enabled = (tabCount > 0);
+			enableItems(enabled);
+		});
+		enableItems(false);
 		
 		frame.add(toolBar, BorderLayout.NORTH);
 		frame.setJMenuBar(menuBar);
@@ -114,7 +115,6 @@ public class View {
     		TablePanel newPanel = new TablePanel();
     		newPanels.put(newPanel, path);
     		if(tabbedPane.getTabCount() > 0) {
-    			enableItems();
         		for(int i = 0; i < tabbedPane.getTabCount(); i++) {
         			if(tabbedPane.getTitleAt(i).equals(path.getName())) {
         				tabbedPane.setSelectedIndex(i);
@@ -122,17 +122,10 @@ public class View {
         			}
         		}
     		}
-    		else {
-    			disableItems();
-    		}
 			tabbedPane.addTab(path.getName(), fileChooser.getIcon(path), (Component) newPanels.keySet().toArray()[newPanels.size()-1]);
-			enableItems();
     		Main.createModelLoad(path, ((TablePanel) newPanels.keySet().toArray()[newPanels.size()-1]).getTable());
     		tabbedPane.setSelectedIndex(tabbedPane.getTabCount() - 1);
         }
-		else if(returnVal != 0 && tabbedPane.getTabCount() == 0) {
-			disableItems();
-		}
 	}
 	
 	private void openSaveDialog() {
@@ -164,20 +157,14 @@ public class View {
 		Main.createModelRefresh(newPanels.get((TablePanel) tabbedPane.getSelectedComponent()), ((TablePanel) tabbedPane.getSelectedComponent()).getTable());
 	}
 	
-	private void enableItems() {
-		saveButton.setEnabled(true);
-		selectAllButton.setEnabled(true);
-		refreshButton.setEnabled(true);
-		editMenu.setEnabled(true);
-		saveMenuItem.setEnabled(true);
-	}
-	
-	private void disableItems() {
-		saveButton.setEnabled(false);
-		selectAllButton.setEnabled(false);
-		refreshButton.setEnabled(false);
-		editMenu.setEnabled(false);
-		saveMenuItem.setEnabled(false);
+	private void enableItems(boolean enabled) {
+		saveButton.setEnabled(enabled);
+		selectAllButton.setEnabled(enabled);
+		refreshButton.setEnabled(enabled);
+		editMenu.setEnabled(enabled);
+		saveMenuItem.setEnabled(enabled);
+		printButton.setEnabled(enabled);
+		printMenuItem.setEnabled(enabled);
 	}
 	
 	private void createMenuBar() {
@@ -199,6 +186,7 @@ public class View {
 		printMenuItem.setAccelerator(KeyStroke.getKeyStroke('P', Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
 		fileMenu.add(openMenuItem);
 		fileMenu.add(saveMenuItem);
+		fileMenu.addSeparator();
 		fileMenu.add(printMenuItem);
 		
 		editMenu = new JMenu("Edit");
@@ -285,6 +273,7 @@ public class View {
 	
 	class TablePanel extends JPanel {
 		private JTable table = new JTable();
+		private JScrollPane scrollPane;
 		
 		public TablePanel() {
 			setLayout(new BorderLayout());
@@ -293,8 +282,8 @@ public class View {
 			table.setAutoResizeMode(0);
 			table.setCellSelectionEnabled(true);
 			
-			JScrollPane scrollPane = new JScrollPane(table);
-			JTable rowTable = new RowNumberTable(table);
+			scrollPane = new JScrollPane(table);
+			RowNumberTable rowTable = new RowNumberTable(table);
 			rowTable.setShowGrid(true);
 			scrollPane.setRowHeaderView(rowTable);
 			scrollPane.setCorner(JScrollPane.UPPER_LEFT_CORNER, rowTable.getTableHeader());
@@ -304,6 +293,10 @@ public class View {
 		
 		public JTable getTable() {
 			return table;
+		}
+		
+		public JScrollPane getScrollPane() {
+			return scrollPane;
 		}
 	}
 	

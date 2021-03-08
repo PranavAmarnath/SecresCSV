@@ -46,7 +46,7 @@ public class Model {
 	 * @param table  The table
 	 */
 	public Model(File path, JTable table, boolean refresh) {
-		new SwingWorker<Void, String>() {
+		class Worker extends SwingWorker<Void, String> {
 			@Override
 			protected Void doInBackground() {
 				try {
@@ -88,7 +88,9 @@ public class Model {
 					showError("I/O Exception :(", e);
 				}
 			}
-		}.execute();
+		};
+		Worker worker = new Worker();
+		worker.execute();
 	}
 	
 	public static void save(String path, JTable table) {

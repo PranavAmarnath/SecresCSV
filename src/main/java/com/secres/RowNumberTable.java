@@ -19,7 +19,7 @@ public class RowNumberTable extends JTable implements ChangeListener, PropertyCh
 		main.addPropertyChangeListener(this);
 		main.getModel().addTableModelListener(this);
 
-		setFocusable( false );
+		setFocusable(false);
 		setAutoCreateColumnsFromModel(false);
 		setSelectionModel(main.getSelectionModel());
 
@@ -104,7 +104,7 @@ public class RowNumberTable extends JTable implements ChangeListener, PropertyCh
 		//  Keep the row table in sync with the main table
 	
 		if ("selectionModel".equals(e.getPropertyName())) {
-			setSelectionModel( main.getSelectionModel() );
+			setSelectionModel(main.getSelectionModel());
 		}
 	
 		if ("rowHeight".equals(e.getPropertyName())) {
