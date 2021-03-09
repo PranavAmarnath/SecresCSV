@@ -1,20 +1,35 @@
 package com.secres;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
+import java.awt.Desktop;
 import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Taskbar;
 import java.awt.Toolkit;
+import java.awt.image.BufferedImage;
 import java.awt.print.PrinterException;
 import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.text.MessageFormat;
 import java.util.LinkedHashMap;
 import java.util.function.BiConsumer;
 
 import javax.swing.Action;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -31,6 +46,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.JTable.PrintMode;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import org.jdesktop.swingx.JXHyperlink;
+
 import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
@@ -39,14 +56,15 @@ public class View {
 
 	private static JFrame frame;
 	private JButton openButton, saveButton, printButton, selectAllButton, refreshButton;
-	private JToolBar toolBar;
+	private static JToolBar toolBar;
 	private static JTabbedPane tabbedPane;
 	private static LinkedHashMap<TablePanel, File> newPanels = new LinkedHashMap<>();
 	private JMenuBar menuBar;
-	private JMenu fileMenu, editMenu, viewMenu;
+	private JMenu fileMenu, editMenu, viewMenu, helpMenu;
 	private JMenuItem openMenuItem, saveMenuItem, printMenuItem;
 	private JMenuItem selectAllMenuItem, refreshMenuItem;
 	private JRadioButtonMenuItem lightMenuItem, darkMenuItem;
+	private JMenuItem aboutMenuItem;
 	
 	public View() {
 		createAndShowGUI();
@@ -75,6 +93,7 @@ public class View {
 		
 		menuBar = new JMenuBar();
 		toolBar = new JToolBar();
+		toolBar.setLayout(new BoxLayout(toolBar, BoxLayout.X_AXIS));
 		
 		createMenuBar();
 		createToolBar();
@@ -91,6 +110,20 @@ public class View {
 		
 		tabsPanel.add(tabbedPane);
 		frame.add(tabsPanel);
+		
+		// loading an image from a file
+		Toolkit defaultToolkit = Toolkit.getDefaultToolkit();
+		URL imageResource = getClass().getResource("/gear.png"); // URL: https://cdn.pixabay.com/photo/2012/05/04/10/57/gear-47203_1280.png
+		Image image = defaultToolkit.getImage(imageResource);
+
+		try {
+			Taskbar taskbar = Taskbar.getTaskbar();
+			// set icon for mac os (and other systems which do support this method)
+			taskbar.setIconImage(image);
+		} catch (UnsupportedOperationException e) {
+			// set icon for windows (and other systems which do support this method)
+			frame.setIconImage(image);
+		}
 		
 		frame.pack();
 		frame.setVisible(true);
@@ -170,16 +203,19 @@ public class View {
 	private void createMenuBar() {
 		fileMenu = new JMenu("File");
 		openMenuItem = new JMenuItem("Open...");
+		openMenuItem.setToolTipText("Open file");
 		openMenuItem.addActionListener(e -> {
 			openDialog();
 		});
 		openMenuItem.setAccelerator(KeyStroke.getKeyStroke('O', Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
 		saveMenuItem = new JMenuItem("Save");
+		saveMenuItem.setToolTipText("Save table");
 		saveMenuItem.addActionListener(e -> {
 			save();
 		});
 		saveMenuItem.setAccelerator(KeyStroke.getKeyStroke('S', Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
 		printMenuItem = new JMenuItem("Print...");
+		printMenuItem.setToolTipText("Print table");
 		printMenuItem.addActionListener(e -> {
 			print();
 		});
@@ -191,11 +227,13 @@ public class View {
 		
 		editMenu = new JMenu("Edit");
 		selectAllMenuItem = new JMenuItem("Select All");
+		selectAllMenuItem.setToolTipText("Select all cells");
 		selectAllMenuItem.addActionListener(e -> {
 			selectAll();
 		});
 		selectAllMenuItem.setAccelerator(KeyStroke.getKeyStroke('A', Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
 		refreshMenuItem = new JMenuItem("Refresh");
+		refreshMenuItem.setToolTipText("Refresh table data");
 		refreshMenuItem.addActionListener(e -> {
 			refresh();
 		});
@@ -206,6 +244,7 @@ public class View {
 		viewMenu = new JMenu("View");
 		ButtonGroup themes = new ButtonGroup();
 		lightMenuItem = new JRadioButtonMenuItem("Light");
+		lightMenuItem.setToolTipText("Light theme");
 		lightMenuItem.setSelected(true);
 		themes.add(lightMenuItem);
 		lightMenuItem.addActionListener(e -> {
@@ -213,6 +252,7 @@ public class View {
 			SwingUtilities.updateComponentTreeUI(frame);
 		});
 		darkMenuItem = new JRadioButtonMenuItem("Dark");
+		darkMenuItem.setToolTipText("Dark theme");
 		themes.add(darkMenuItem);
 		darkMenuItem.addActionListener(e -> {
 			FlatDarkLaf.install();
@@ -221,9 +261,92 @@ public class View {
 		viewMenu.add(lightMenuItem);
 		viewMenu.add(darkMenuItem);
 		
+		helpMenu = new JMenu("Help");
+		aboutMenuItem = new JMenuItem("About SecresCSV");
+		aboutMenuItem.setToolTipText("About the app");
+		JPanel aboutPanel = createAboutPanel();
+		aboutMenuItem.addActionListener(e -> {
+			JOptionPane.showMessageDialog(frame, aboutPanel, "About SecresCSV", JOptionPane.PLAIN_MESSAGE);
+		});
+		helpMenu.add(aboutMenuItem);
+		
 		menuBar.add(fileMenu);
 		menuBar.add(editMenu);
 		menuBar.add(viewMenu);
+		menuBar.add(helpMenu);
+	}
+	
+	static JPanel createAboutPanel() {
+		JPanel mainPanel = new JPanel(new BorderLayout());
+		URL imageResource = Main.class.getResource("/gear.png"); // URL: https://cdn.pixabay.com/photo/2012/05/04/10/57/gear-47203_1280.png
+		BufferedImage img = toBufferedImage(new ImageIcon(imageResource).getImage());
+		JLabel icon = new JLabel();
+		icon.setIcon(new ImageIcon(img));
+		Image dimg = img.getScaledInstance(49, 51, Image.SCALE_SMOOTH);
+		icon.setIcon(new ImageIcon(dimg));
+		JPanel imgPanel = new JPanel();
+		imgPanel.add(icon);
+		mainPanel.add(imgPanel);
+
+		JPanel namePanel = new JPanel();
+		JXHyperlink nameLink = new JXHyperlink();
+		nameLink.setText("SecresCSV");
+		nameLink.setToolTipText("SecresCSV\nhttps://github.com/PranavAmarnath/SecresCSV");
+		nameLink.addActionListener(e -> {
+			Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
+		    if (desktop != null && desktop.isSupported(Desktop.Action.BROWSE)) {
+				try {
+					desktop.browse(new URI("https://github.com/PranavAmarnath/SecresCSV"));
+					nameLink.setClicked(true);
+					nameLink.setClickedColor(new Color(70, 39, 89));
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				} catch (URISyntaxException e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
+		namePanel.add(nameLink, SwingConstants.CENTER);
+		JPanel versionPanel = new JPanel();
+		JLabel versionLabel = new JLabel("Version 2.0", SwingConstants.CENTER);
+		versionPanel.add(versionLabel);
+		JPanel copyrightPanel = new JPanel();
+		JLabel copyrightLabel = new JLabel("<html>Copyright \u00a9 2021 Pranav Amarnath<br><div style='text-align: center;'>All Rights Reserved.</div></html>", SwingConstants.CENTER);
+		copyrightPanel.add(copyrightLabel);
+		
+		JPanel productPanel = new JPanel();
+		productPanel.setLayout(new BoxLayout(productPanel, BoxLayout.PAGE_AXIS));
+		productPanel.add(namePanel);
+		productPanel.add(versionPanel);
+		productPanel.add(copyrightPanel);
+		mainPanel.add(productPanel, BorderLayout.SOUTH);
+		mainPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+		
+		return mainPanel;
+	}
+	
+	/**
+	 * Converts a given Image into a BufferedImage
+	 * 
+	 * @param img The Image to be converted
+	 * @return The converted <code>BufferedImage</code>
+	 */
+	private static BufferedImage toBufferedImage(Image img) {
+		/** Reference: @see https://stackoverflow.com/a/13605411 */
+	    if (img instanceof BufferedImage) {
+	        return (BufferedImage) img;
+	    }
+
+	    // Create a buffered image with transparency
+	    BufferedImage bimage = new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+
+	    // Draw the image on to the buffered image
+	    Graphics2D bGr = bimage.createGraphics();
+	    bGr.drawImage(img, 0, 0, null);
+	    bGr.dispose();
+
+	    // Return the buffered image
+	    return bimage;
 	}
 	
 	private void createToolBar() {
@@ -269,6 +392,9 @@ public class View {
 		toolBar.add(printButton);
 		toolBar.add(selectAllButton);
 		toolBar.add(refreshButton);
+		
+		toolBar.addSeparator();
+		toolBar.add(Box.createHorizontalStrut(8)); // space between separator and busy label
 	}
 	
 	class TablePanel extends JPanel {
@@ -279,7 +405,10 @@ public class View {
 			setLayout(new BorderLayout());
 			
 			table.setShowGrid(true);
-			table.setAutoResizeMode(0);
+			table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+			try {
+				table.setAutoCreateRowSorter(true);
+			} catch (Exception e) { /* Move on (i.e. ignore sorting if exception occurs) */ }
 			table.setCellSelectionEnabled(true);
 			
 			scrollPane = new JScrollPane(table);
@@ -291,25 +420,29 @@ public class View {
 			add(scrollPane);
 		}
 		
-		public JTable getTable() {
+		JTable getTable() {
 			return table;
 		}
 		
-		public JScrollPane getScrollPane() {
+		JScrollPane getScrollPane() {
 			return scrollPane;
 		}
 	}
 	
-	public static JTabbedPane getTabbedPane() {
+	static JTabbedPane getTabbedPane() {
 		return tabbedPane;
 	}
 	
-	public static JFrame getFrame() {
+	static JFrame getFrame() {
 		return frame;
 	}
 	
-	public static LinkedHashMap<TablePanel, File> getPanels() {
+	static LinkedHashMap<TablePanel, File> getPanels() {
 		return newPanels;
+	}
+	
+	static JToolBar getToolBar() {
+		return toolBar;
 	}
 	
 }
