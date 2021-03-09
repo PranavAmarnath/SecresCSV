@@ -5,7 +5,9 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Desktop;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics2D;
+import java.awt.GridBagLayout;
 import java.awt.Image;
 import java.awt.Taskbar;
 import java.awt.Toolkit;
@@ -45,6 +47,7 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.JTable.PrintMode;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.filechooser.FileSystemView;
 
 import org.jdesktop.swingx.JXHyperlink;
 
@@ -55,6 +58,7 @@ import com.formdev.flatlaf.extras.FlatSVGIcon;
 public class View {
 
 	private static JFrame frame;
+	private JPanel emptyPanel, tabsPanel;
 	private JButton openButton, saveButton, printButton, selectAllButton, refreshButton;
 	private static JToolBar toolBar;
 	private static JTabbedPane tabbedPane;
@@ -65,52 +69,100 @@ public class View {
 	private JMenuItem selectAllMenuItem, refreshMenuItem;
 	private JRadioButtonMenuItem lightMenuItem, darkMenuItem;
 	private JMenuItem aboutMenuItem;
-	
+
 	public View() {
 		createAndShowGUI();
 	}
-	
+
 	private void createAndShowGUI() {
-		frame = new JFrame("Secres GUI") {
+		frame = new JFrame("SecresCSV") {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1414146409316813232L;
+
 			public Dimension getPreferredSize() {
 				return new Dimension(600, 500);
 			}
 		};
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		JPanel tabsPanel = new JPanel(new BorderLayout());
-		
+		tabsPanel = new JPanel(new BorderLayout());
+
 		tabbedPane = new JTabbedPane(SwingConstants.BOTTOM);
-		
+
 		tabbedPane.setTabLayoutPolicy(1); // scrolling tabs
 		tabbedPane.putClientProperty("JTabbedPane.tabClosable", true);
 		tabbedPane.putClientProperty("JTabbedPane.showTabSeparators", true);
 		tabbedPane.putClientProperty("JTabbedPane.tabCloseCallback", (BiConsumer<JTabbedPane, Integer>) (tabbedPane, tabIndex) -> {
-	        // close tab here
-        	openSaveDialog();
+			// close tab here
+			saveDialog();
 			tabbedPane.removeTabAt(tabIndex);
-	    });
+		});
 		tabbedPane.putClientProperty("JTabbedPane.tabCloseToolTipText", "Close");
-		
+
 		menuBar = new JMenuBar();
 		toolBar = new JToolBar();
 		toolBar.setLayout(new BoxLayout(toolBar, BoxLayout.X_AXIS));
-		
+
 		createMenuBar();
 		createToolBar();
-		
+
 		tabbedPane.addChangeListener(e -> {
 			int tabCount = tabbedPane.getTabCount();
 			boolean enabled = (tabCount > 0);
 			enableItems(enabled);
+			// Switch between empty panel and tabs depending on if there are any tabs open
+			if(enabled) {
+				frame.remove(emptyPanel);
+				frame.add(tabsPanel);
+				frame.revalidate();
+				frame.repaint();
+			}
+			else {
+				frame.remove(tabsPanel);
+				frame.add(emptyPanel);
+				frame.revalidate();
+				frame.repaint();
+			}
 		});
 		enableItems(false);
-		
+
 		frame.add(toolBar, BorderLayout.NORTH);
 		frame.setJMenuBar(menuBar);
-		
+
+		emptyPanel = new JPanel(new BorderLayout());
+		JPanel noFilesPanel = new JPanel();
+		noFilesPanel.setLayout(new BoxLayout(noFilesPanel, BoxLayout.PAGE_AXIS));
+		JLabel emptyLabel = new JLabel("No files are open", JLabel.CENTER);
+		emptyLabel.setFont(new Font("SansSerif", Font.BOLD, 18));
+		emptyLabel.setForeground(new Color(150, 150, 150));
+		JLabel openFileWithMenuLabel = new JLabel("Open a file with menu \"File > Open...\"", JLabel.CENTER);
+		openFileWithMenuLabel.setFont(new Font("SansSerif", Font.BOLD, 11));
+		openFileWithMenuLabel.setForeground(new Color(150, 150, 150));
+		JLabel dndLabel = new JLabel("Drag and drop files from file manager", JLabel.CENTER);
+		dndLabel.setFont(new Font("SansSerif", Font.BOLD, 11));
+		dndLabel.setForeground(new Color(150, 150, 150));
+
+		noFilesPanel.add(emptyLabel);
+		noFilesPanel.add(openFileWithMenuLabel);
+		noFilesPanel.add(dndLabel);
+
+		JPanel tempPanel = new JPanel(new GridBagLayout());
+		tempPanel.add(noFilesPanel);
+
+		emptyPanel.add(tempPanel);
+
+		new FileDrop(emptyPanel, new FileDrop.Listener() {
+			public void filesDropped(java.io.File[] files) {
+				for(File file : files) {
+					addTablePanel(file);
+				}
+			}
+		});
+
 		tabsPanel.add(tabbedPane);
-		frame.add(tabsPanel);
-		
+		frame.add(emptyPanel);
+
 		// loading an image from a file
 		Toolkit defaultToolkit = Toolkit.getDefaultToolkit();
 		URL imageResource = getClass().getResource("/gear.png"); // URL: https://cdn.pixabay.com/photo/2012/05/04/10/57/gear-47203_1280.png
@@ -124,12 +176,12 @@ public class View {
 			// set icon for windows (and other systems which do support this method)
 			frame.setIconImage(image);
 		}
-		
+
 		frame.pack();
 		frame.setVisible(true);
-		openDialog(); // Greet user with JFileChooser to open file
+		//openDialog(); // Greet user with JFileChooser to open file
 	}
-	
+
 	private void openDialog() {
 		JFileChooser fileChooser = new JFileChooser();
 		FileNameExtensionFilter filter = new FileNameExtensionFilter("CSV files (*.csv), Text files (*.txt)", "csv", "txt");
@@ -144,39 +196,59 @@ public class View {
 
 		int returnVal = fileChooser.showOpenDialog(frame);
 		if(returnVal == 0) {
-            File path = fileChooser.getSelectedFile();
-    		TablePanel newPanel = new TablePanel();
-    		newPanels.put(newPanel, path);
-    		if(tabbedPane.getTabCount() > 0) {
-        		for(int i = 0; i < tabbedPane.getTabCount(); i++) {
-        			if(tabbedPane.getTitleAt(i).equals(path.getName())) {
-        				tabbedPane.setSelectedIndex(i);
-        				return;
-        			}
-        		}
-    		}
-			tabbedPane.addTab(path.getName(), fileChooser.getIcon(path), (Component) newPanels.keySet().toArray()[newPanels.size()-1]);
-    		Main.createModelLoad(path, ((TablePanel) newPanels.keySet().toArray()[newPanels.size()-1]).getTable());
-    		tabbedPane.setSelectedIndex(tabbedPane.getTabCount() - 1);
-        }
+			File path = fileChooser.getSelectedFile();
+			addTablePanel(path, fileChooser);
+		}
 	}
-	
-	private void openSaveDialog() {
+
+	private void addTablePanel(File path) {
+		TablePanel newPanel = new TablePanel();
+		newPanels.put(newPanel, path);
+		if(tabbedPane.getTabCount() > 0) {
+			for(int i = 0; i < tabbedPane.getTabCount(); i++) {
+				if(tabbedPane.getTitleAt(i).equals(path.getName())) {
+					tabbedPane.setSelectedIndex(i);
+					return;
+				}
+			}
+		}
+		tabbedPane.addTab(path.getName(), FileSystemView.getFileSystemView().getSystemIcon(path), (Component) newPanels.keySet().toArray()[newPanels.size()-1]);
+		Main.createModelLoad(path, ((TablePanel) newPanels.keySet().toArray()[newPanels.size()-1]).getTable());
+		tabbedPane.setSelectedIndex(tabbedPane.getTabCount() - 1);
+	}
+
+	private void addTablePanel(File path, JFileChooser fileChooser) {
+		TablePanel newPanel = new TablePanel();
+		newPanels.put(newPanel, path);
+		if(tabbedPane.getTabCount() > 0) {
+			for(int i = 0; i < tabbedPane.getTabCount(); i++) {
+				if(tabbedPane.getTitleAt(i).equals(path.getName())) {
+					tabbedPane.setSelectedIndex(i);
+					return;
+				}
+			}
+		}
+		tabbedPane.addTab(path.getName(), fileChooser.getIcon(path), (Component) newPanels.keySet().toArray()[newPanels.size()-1]);
+		Main.createModelLoad(path, ((TablePanel) newPanels.keySet().toArray()[newPanels.size()-1]).getTable());
+		tabbedPane.setSelectedIndex(tabbedPane.getTabCount() - 1);
+	}
+
+	private void saveDialog() {
 		int result = JOptionPane.showConfirmDialog(frame, "Do you want to save any changes?", "Save", JOptionPane.YES_NO_OPTION);
 		if(result == JOptionPane.YES_OPTION) {
 			save();
 		}
 	}
-	
+
 	private void save() {
 		Main.saveModel(newPanels.get(tabbedPane.getSelectedComponent()).getAbsolutePath(), ((TablePanel) tabbedPane.getSelectedComponent()).getTable());
 	}
-	
+
 	private void selectAll() {
 		((TablePanel) tabbedPane.getSelectedComponent()).getTable().requestFocus();
 		((TablePanel) tabbedPane.getSelectedComponent()).getTable().selectAll();
 	}
-	
+
 	private void print() {
 		try {
 			MessageFormat header = new MessageFormat("Page {0,number,integer}");
@@ -185,11 +257,11 @@ public class View {
 			e.printStackTrace();
 		}
 	}
-	
+
 	private void refresh() {
 		Main.createModelRefresh(newPanels.get((TablePanel) tabbedPane.getSelectedComponent()), ((TablePanel) tabbedPane.getSelectedComponent()).getTable());
 	}
-	
+
 	private void enableItems(boolean enabled) {
 		saveButton.setEnabled(enabled);
 		selectAllButton.setEnabled(enabled);
@@ -199,7 +271,7 @@ public class View {
 		printButton.setEnabled(enabled);
 		printMenuItem.setEnabled(enabled);
 	}
-	
+
 	private void createMenuBar() {
 		fileMenu = new JMenu("File");
 		openMenuItem = new JMenuItem("Open...");
@@ -224,7 +296,7 @@ public class View {
 		fileMenu.add(saveMenuItem);
 		fileMenu.addSeparator();
 		fileMenu.add(printMenuItem);
-		
+
 		editMenu = new JMenu("Edit");
 		selectAllMenuItem = new JMenuItem("Select All");
 		selectAllMenuItem.setToolTipText("Select all cells");
@@ -240,7 +312,7 @@ public class View {
 		refreshMenuItem.setAccelerator(KeyStroke.getKeyStroke('R', Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
 		editMenu.add(selectAllMenuItem);
 		editMenu.add(refreshMenuItem);
-		
+
 		viewMenu = new JMenu("View");
 		ButtonGroup themes = new ButtonGroup();
 		lightMenuItem = new JRadioButtonMenuItem("Light");
@@ -260,7 +332,7 @@ public class View {
 		});
 		viewMenu.add(lightMenuItem);
 		viewMenu.add(darkMenuItem);
-		
+
 		helpMenu = new JMenu("Help");
 		aboutMenuItem = new JMenuItem("About SecresCSV");
 		aboutMenuItem.setToolTipText("About the app");
@@ -269,13 +341,13 @@ public class View {
 			JOptionPane.showMessageDialog(frame, aboutPanel, "About SecresCSV", JOptionPane.PLAIN_MESSAGE);
 		});
 		helpMenu.add(aboutMenuItem);
-		
+
 		menuBar.add(fileMenu);
 		menuBar.add(editMenu);
 		menuBar.add(viewMenu);
 		menuBar.add(helpMenu);
 	}
-	
+
 	static JPanel createAboutPanel() {
 		JPanel mainPanel = new JPanel(new BorderLayout());
 		URL imageResource = Main.class.getResource("/gear.png"); // URL: https://cdn.pixabay.com/photo/2012/05/04/10/57/gear-47203_1280.png
@@ -294,7 +366,7 @@ public class View {
 		nameLink.setToolTipText("SecresCSV\nhttps://github.com/PranavAmarnath/SecresCSV");
 		nameLink.addActionListener(e -> {
 			Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
-		    if (desktop != null && desktop.isSupported(Desktop.Action.BROWSE)) {
+			if (desktop != null && desktop.isSupported(Desktop.Action.BROWSE)) {
 				try {
 					desktop.browse(new URI("https://github.com/PranavAmarnath/SecresCSV"));
 					nameLink.setClicked(true);
@@ -313,7 +385,7 @@ public class View {
 		JPanel copyrightPanel = new JPanel();
 		JLabel copyrightLabel = new JLabel("<html>Copyright \u00a9 2021 Pranav Amarnath<br><div style='text-align: center;'>All Rights Reserved.</div></html>", SwingConstants.CENTER);
 		copyrightPanel.add(copyrightLabel);
-		
+
 		JPanel productPanel = new JPanel();
 		productPanel.setLayout(new BoxLayout(productPanel, BoxLayout.PAGE_AXIS));
 		productPanel.add(namePanel);
@@ -321,10 +393,10 @@ public class View {
 		productPanel.add(copyrightPanel);
 		mainPanel.add(productPanel, BorderLayout.SOUTH);
 		mainPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-		
+
 		return mainPanel;
 	}
-	
+
 	/**
 	 * Converts a given Image into a BufferedImage
 	 * 
@@ -333,22 +405,22 @@ public class View {
 	 */
 	private static BufferedImage toBufferedImage(Image img) {
 		/** Reference: @see https://stackoverflow.com/a/13605411 */
-	    if (img instanceof BufferedImage) {
-	        return (BufferedImage) img;
-	    }
+		if (img instanceof BufferedImage) {
+			return (BufferedImage) img;
+		}
 
-	    // Create a buffered image with transparency
-	    BufferedImage bimage = new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+		// Create a buffered image with transparency
+		BufferedImage bimage = new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
 
-	    // Draw the image on to the buffered image
-	    Graphics2D bGr = bimage.createGraphics();
-	    bGr.drawImage(img, 0, 0, null);
-	    bGr.dispose();
+		// Draw the image on to the buffered image
+		Graphics2D bGr = bimage.createGraphics();
+		bGr.drawImage(img, 0, 0, null);
+		bGr.dispose();
 
-	    // Return the buffered image
-	    return bimage;
+		// Return the buffered image
+		return bimage;
 	}
-	
+
 	private void createToolBar() {
 		openButton = new JButton(new FlatSVGIcon("open.svg"));
 		openButton.setFocusable(false);
@@ -356,21 +428,21 @@ public class View {
 		openButton.addActionListener(e -> {
 			openDialog();
 		});
-		
+
 		saveButton = new JButton(new FlatSVGIcon("save.svg"));
 		saveButton.setFocusable(false);
 		saveButton.setToolTipText("Save");
 		saveButton.addActionListener(e -> {
 			save();
 		});
-		
+
 		printButton = new JButton(new FlatSVGIcon("print.svg"));
 		printButton.setFocusable(false);
 		printButton.setToolTipText("Print");
 		printButton.addActionListener(e -> {
 			print();
 		});
-		
+
 		selectAllButton = new JButton();
 		selectAllButton.setIcon(new FlatSVGIcon("select_all.svg"));
 		selectAllButton.setFocusable(false);
@@ -378,7 +450,7 @@ public class View {
 		selectAllButton.addActionListener(e -> {
 			selectAll();
 		});
-		
+
 		refreshButton = new JButton();
 		refreshButton.setIcon(new FlatSVGIcon("refresh.svg"));
 		refreshButton.setFocusable(false);
@@ -392,57 +464,61 @@ public class View {
 		toolBar.add(printButton);
 		toolBar.add(selectAllButton);
 		toolBar.add(refreshButton);
-		
+
 		toolBar.addSeparator();
 		toolBar.add(Box.createHorizontalStrut(8)); // space between separator and busy label
 	}
-	
+
 	class TablePanel extends JPanel {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -3961573416357564849L;
 		private JTable table = new JTable();
 		private JScrollPane scrollPane;
-		
+
 		public TablePanel() {
 			setLayout(new BorderLayout());
-			
+
 			table.setShowGrid(true);
 			table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 			try {
 				table.setAutoCreateRowSorter(true);
 			} catch (Exception e) { /* Move on (i.e. ignore sorting if exception occurs) */ }
 			table.setCellSelectionEnabled(true);
-			
+
 			scrollPane = new JScrollPane(table);
 			RowNumberTable rowTable = new RowNumberTable(table);
 			rowTable.setShowGrid(true);
 			scrollPane.setRowHeaderView(rowTable);
 			scrollPane.setCorner(JScrollPane.UPPER_LEFT_CORNER, rowTable.getTableHeader());
-			
+
 			add(scrollPane);
 		}
-		
+
 		JTable getTable() {
 			return table;
 		}
-		
+
 		JScrollPane getScrollPane() {
 			return scrollPane;
 		}
 	}
-	
+
 	static JTabbedPane getTabbedPane() {
 		return tabbedPane;
 	}
-	
+
 	static JFrame getFrame() {
 		return frame;
 	}
-	
+
 	static LinkedHashMap<TablePanel, File> getPanels() {
 		return newPanels;
 	}
-	
+
 	static JToolBar getToolBar() {
 		return toolBar;
 	}
-	
+
 }

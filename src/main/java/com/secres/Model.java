@@ -10,14 +10,10 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 
 import javax.swing.JOptionPane;
-import javax.swing.JSeparator;
 import javax.swing.JTable;
 import javax.swing.JTextPane;
-import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
@@ -184,6 +180,8 @@ public class Model {
 		busyLabel = new JXBusyLabel(new Dimension(18, 18)); // dimensions of icons to keep scaled
 		busyLabel.setBusy(true);
 		View.getToolBar().add(busyLabel);
+		View.getToolBar().revalidate();
+		View.getToolBar().repaint();
 	}
 	
 	/**

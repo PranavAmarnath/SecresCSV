@@ -19,13 +19,9 @@ public class Main {
 	}
 
 	public static void main(String[] args) {
-		// For picky mac users
 		System.setProperty("apple.laf.useScreenMenuBar", "true");
-		// Mac header on mac menubar
-		System.setProperty("apple.awt.application.name", "Secres");
+		System.setProperty("apple.awt.application.name", "SecresCSV");
 		System.setProperty("apple.awt.application.appearance", "system");
-		// Acceleration of graphics, should ONLY be used by developers
-		//System.setProperty("apple.awt.graphics.EnableQ2DX","true");
 		System.setProperty("apple.awt.antialiasing", "true");
 		System.setProperty("apple.awt.textantialiasing", "true");
 		/*
