@@ -1,6 +1,7 @@
 package com.secres;
 
 import java.awt.BorderLayout;
+import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Desktop;
@@ -58,7 +59,7 @@ import com.formdev.flatlaf.extras.FlatSVGIcon;
 public class View {
 
 	private static JFrame frame;
-	private JPanel emptyPanel, tabsPanel;
+	private JPanel mainPanel, emptyPanel, tabsPanel;
 	private JButton openButton, saveButton, printButton, selectAllButton, refreshButton;
 	private static JToolBar toolBar;
 	private static JTabbedPane tabbedPane;
@@ -86,6 +87,9 @@ public class View {
 			}
 		};
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		
+		mainPanel = new JPanel(new CardLayout());
+		emptyPanel = new JPanel(new BorderLayout());
 		tabsPanel = new JPanel(new BorderLayout());
 
 		tabbedPane = new JTabbedPane(SwingConstants.BOTTOM);
@@ -106,6 +110,9 @@ public class View {
 
 		createMenuBar();
 		createToolBar();
+		
+		mainPanel.add(emptyPanel, "Empty");
+		mainPanel.add(tabsPanel, "Tabs");
 
 		tabbedPane.addChangeListener(e -> {
 			int tabCount = tabbedPane.getTabCount();
@@ -113,16 +120,12 @@ public class View {
 			enableItems(enabled);
 			// Switch between empty panel and tabs depending on if there are any tabs open
 			if(enabled) {
-				frame.remove(emptyPanel);
-				frame.add(tabsPanel);
-				frame.revalidate();
-				frame.repaint();
+				CardLayout cl = (CardLayout) mainPanel.getLayout();
+				cl.show(mainPanel, "Tabs");
 			}
 			else {
-				frame.remove(tabsPanel);
-				frame.add(emptyPanel);
-				frame.revalidate();
-				frame.repaint();
+				CardLayout cl = (CardLayout) mainPanel.getLayout();
+				cl.show(mainPanel, "Empty");
 			}
 		});
 		enableItems(false);
@@ -130,7 +133,6 @@ public class View {
 		frame.add(toolBar, BorderLayout.NORTH);
 		frame.setJMenuBar(menuBar);
 
-		emptyPanel = new JPanel(new BorderLayout());
 		JPanel noFilesPanel = new JPanel();
 		noFilesPanel.setLayout(new BoxLayout(noFilesPanel, BoxLayout.PAGE_AXIS));
 		JLabel emptyLabel = new JLabel("No files are open", JLabel.CENTER);
@@ -161,7 +163,7 @@ public class View {
 		});
 
 		tabsPanel.add(tabbedPane);
-		frame.add(emptyPanel);
+		frame.add(mainPanel);
 
 		// loading an image from a file
 		Toolkit defaultToolkit = Toolkit.getDefaultToolkit();

@@ -14,7 +14,7 @@ import com.formdev.flatlaf.FlatLightLaf;
 
 public class Main {
 
-	public Main() {
+	public Main() { 
 		createView();
 	}
 
