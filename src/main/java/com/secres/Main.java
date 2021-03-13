@@ -54,15 +54,15 @@ public class Main {
 		});
 	}
 
-	static void createModelLoad(File PATH, JTable table) {
+	public static void createModelLoad(File PATH, JTable table) {
 		new Model(PATH, table, false);
 	}
 
-	static void createModelRefresh(File PATH, JTable table) {
+	public static void createModelRefresh(File PATH, JTable table) {
 		new Model(PATH, table, true);
 	}
 
-	static void saveModel(String PATH, JTable table) {
+	public static void saveModel(String PATH, JTable table) {
 		Model.save(PATH, table);
 	}
 

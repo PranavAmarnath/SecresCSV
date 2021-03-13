@@ -356,7 +356,7 @@ public class View {
 				try {
 					desktop.browse(new URI("https://github.com/PranavAmarnath/SecresCSV"));
 					nameLink.setClicked(true);
-					nameLink.setClickedColor(new Color(70, 39, 89));
+					nameLink.setClickedColor(new Color(70, 39, 89)); // purple
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				} catch (URISyntaxException e1) {
@@ -482,28 +482,28 @@ public class View {
 			add(scrollPane);
 		}
 
-		JTable getTable() {
+		public JTable getTable() {
 			return table;
 		}
 
-		JScrollPane getScrollPane() {
+		public JScrollPane getScrollPane() {
 			return scrollPane;
 		}
 	}
 
-	static JTabbedPane getTabbedPane() {
+	public static JTabbedPane getTabbedPane() {
 		return tabbedPane;
 	}
 
-	static JFrame getFrame() {
+	public static JFrame getFrame() {
 		return frame;
 	}
 
-	static LinkedHashMap<TablePanel, File> getPanels() {
+	public static LinkedHashMap<TablePanel, File> getPanels() {
 		return newPanels;
 	}
 
-	static JToolBar getToolBar() {
+	public static JToolBar getToolBar() {
 		return toolBar;
 	}
 

@@ -179,7 +179,7 @@ public class Model {
 	 * Creates the busy label.
 	 */
 	private static void createBusyLabel() {
-		if(Taskbar.isTaskbarSupported()) {
+		if(Taskbar.isTaskbarSupported() && System.getProperty("os.name").contains("Win")) {
 			Taskbar.getTaskbar().setWindowProgressState(View.getFrame(), State.INDETERMINATE);
 		}
 		busyLabel = new JXBusyLabel(new Dimension(18, 18)); // dimensions of icons to keep scaled
@@ -193,7 +193,7 @@ public class Model {
 	 * Removes the busy label.
 	 */
 	private static void removeBusyLabel() {
-		if(Taskbar.isTaskbarSupported()) {
+		if(Taskbar.isTaskbarSupported() && System.getProperty("os.name").contains("Win")) {
 			Taskbar.getTaskbar().setWindowProgressState(View.getFrame(), State.OFF);
 		}
 		View.getToolBar().remove(busyLabel);
@@ -205,7 +205,7 @@ public class Model {
 	 * Returns table model
 	 * @return <code>DefaultTableModel</code> - table model
 	 */
-	DefaultTableModel getModel() {
+	public DefaultTableModel getModel() {
 		return model;
 	}
 	
@@ -213,7 +213,7 @@ public class Model {
 	 * Returns table header
 	 * @return <code>Object[]</code> - header
 	 */
-	Object[] getHeaders() {
+	public Object[] getHeaders() {
 		return header;
 	}
 	
