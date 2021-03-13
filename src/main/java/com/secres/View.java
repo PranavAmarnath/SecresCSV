@@ -199,7 +199,7 @@ public class View {
 		int returnVal = fileChooser.showOpenDialog(frame);
 		if(returnVal == 0) {
 			File path = fileChooser.getSelectedFile();
-			addTablePanel(path, fileChooser);
+			addTablePanel(path);
 		}
 	}
 
@@ -215,22 +215,6 @@ public class View {
 			}
 		}
 		tabbedPane.addTab(path.getName(), FileSystemView.getFileSystemView().getSystemIcon(path), (Component) newPanels.keySet().toArray()[newPanels.size()-1]);
-		Main.createModelLoad(path, ((TablePanel) newPanels.keySet().toArray()[newPanels.size()-1]).getTable());
-		tabbedPane.setSelectedIndex(tabbedPane.getTabCount() - 1);
-	}
-
-	private void addTablePanel(File path, JFileChooser fileChooser) {
-		TablePanel newPanel = new TablePanel();
-		newPanels.put(newPanel, path);
-		if(tabbedPane.getTabCount() > 0) {
-			for(int i = 0; i < tabbedPane.getTabCount(); i++) {
-				if(tabbedPane.getTitleAt(i).equals(path.getName())) {
-					tabbedPane.setSelectedIndex(i);
-					return;
-				}
-			}
-		}
-		tabbedPane.addTab(path.getName(), fileChooser.getIcon(path), (Component) newPanels.keySet().toArray()[newPanels.size()-1]);
 		Main.createModelLoad(path, ((TablePanel) newPanels.keySet().toArray()[newPanels.size()-1]).getTable());
 		tabbedPane.setSelectedIndex(tabbedPane.getTabCount() - 1);
 	}

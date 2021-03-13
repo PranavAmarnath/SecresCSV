@@ -5,6 +5,8 @@ import com.opencsv.exceptions.CsvValidationException;
 import com.secres.View.TablePanel;
 
 import java.awt.Dimension;
+import java.awt.Taskbar;
+import java.awt.Taskbar.State;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -177,6 +179,9 @@ public class Model {
 	 * Creates the busy label.
 	 */
 	private static void createBusyLabel() {
+		if(Taskbar.isTaskbarSupported()) {
+			Taskbar.getTaskbar().setWindowProgressState(View.getFrame(), State.INDETERMINATE);
+		}
 		busyLabel = new JXBusyLabel(new Dimension(18, 18)); // dimensions of icons to keep scaled
 		busyLabel.setBusy(true);
 		View.getToolBar().add(busyLabel);
@@ -188,6 +193,9 @@ public class Model {
 	 * Removes the busy label.
 	 */
 	private static void removeBusyLabel() {
+		if(Taskbar.isTaskbarSupported()) {
+			Taskbar.getTaskbar().setWindowProgressState(View.getFrame(), State.OFF);
+		}
 		View.getToolBar().remove(busyLabel);
 		View.getToolBar().revalidate();
 		View.getToolBar().repaint();
