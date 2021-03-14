@@ -18,8 +18,8 @@ Libraries:
 
 How the application looks:
 <p align="middle">
-      <img src="https://user-images.githubusercontent.com/64337291/111054236-f5587600-841f-11eb-8f78-f2c684b36824.png" width="450" />
-      <img src="https://user-images.githubusercontent.com/64337291/111054228-dd80f200-841f-11eb-9ef7-7a2fbf8e1976.png" width="450" /> 
+      <img src="https://user-images.githubusercontent.com/64337291/111054236-f5587600-841f-11eb-8f78-f2c684b36824.png" width="350" />
+      <img src="https://user-images.githubusercontent.com/64337291/111054228-dd80f200-841f-11eb-9ef7-7a2fbf8e1976.png" width="350" /> 
 </p>
 
 
