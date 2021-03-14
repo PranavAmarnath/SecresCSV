@@ -4,7 +4,6 @@ import com.opencsv.*;
 import com.opencsv.exceptions.CsvValidationException;
 import com.secres.View.TablePanel;
 
-import java.awt.Dimension;
 import java.awt.Taskbar;
 import java.awt.Taskbar.State;
 import java.io.File;
@@ -19,8 +18,6 @@ import javax.swing.JTextPane;
 import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
-
-import org.jdesktop.swingx.JXBusyLabel;
 
 /**
  * The <code>Model</code> class defines all I/O from the CSV files.
@@ -44,8 +41,6 @@ public class Model {
 	private CSVReader reader;
 	/** Current line */
 	private String[] line;
-	/** Busy label */
-	private static JXBusyLabel busyLabel;
 	
 	/**
 	 * Model constructor to load CSV data
@@ -104,7 +99,7 @@ public class Model {
 	}
 	
 	/**
-	 * Executes {@link #save(String, JTable)} on a SwingWorker after creating the busy label
+	 * Executes {@link #exportToCSV(String, JTable)} on a SwingWorker after creating the busy label
 	 * @param path  The path to export to
 	 * @param table  The table to export
 	 * @see #save(String, JTable)
@@ -176,29 +171,25 @@ public class Model {
 	}
 	
 	/**
-	 * Creates the busy label.
+	 * Displays the busy label.
 	 */
 	private static void createBusyLabel() {
-		if(Taskbar.isTaskbarSupported() && System.getProperty("os.name").contains("Win")) {
+		if(Taskbar.getTaskbar().isSupported(Taskbar.Feature.PROGRESS_STATE_WINDOW)) {
 			Taskbar.getTaskbar().setWindowProgressState(View.getFrame(), State.INDETERMINATE);
 		}
-		busyLabel = new JXBusyLabel(new Dimension(18, 18)); // dimensions of icons to keep scaled
-		busyLabel.setBusy(true);
-		View.getToolBar().add(busyLabel);
-		View.getToolBar().revalidate();
-		View.getToolBar().repaint();
+		View.getBusyLabel().setBusy(true);
+		View.getBusyLabel().setVisible(true);
 	}
 	
 	/**
 	 * Removes the busy label.
 	 */
 	private static void removeBusyLabel() {
-		if(Taskbar.isTaskbarSupported() && System.getProperty("os.name").contains("Win")) {
+		if(Taskbar.getTaskbar().isSupported(Taskbar.Feature.PROGRESS_STATE_WINDOW)) {
 			Taskbar.getTaskbar().setWindowProgressState(View.getFrame(), State.OFF);
 		}
-		View.getToolBar().remove(busyLabel);
-		View.getToolBar().revalidate();
-		View.getToolBar().repaint();
+		View.getBusyLabel().setBusy(false);
+		View.getBusyLabel().setVisible(false);
 	}
 	
 	/**

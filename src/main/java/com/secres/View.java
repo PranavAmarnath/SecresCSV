@@ -10,6 +10,8 @@ import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.GridBagLayout;
 import java.awt.Image;
+import java.awt.MenuItem;
+import java.awt.PopupMenu;
 import java.awt.Taskbar;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
@@ -50,6 +52,7 @@ import javax.swing.JTable.PrintMode;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.filechooser.FileSystemView;
 
+import org.jdesktop.swingx.JXBusyLabel;
 import org.jdesktop.swingx.JXHyperlink;
 
 import com.formdev.flatlaf.FlatDarkLaf;
@@ -70,6 +73,7 @@ public class View {
 	private JMenuItem selectAllMenuItem, refreshMenuItem;
 	private JRadioButtonMenuItem lightMenuItem, darkMenuItem;
 	private JMenuItem aboutMenuItem;
+	private static JXBusyLabel busyLabel;
 
 	public View() {
 		createAndShowGUI();
@@ -129,6 +133,7 @@ public class View {
 			}
 		});
 		enableItems(false);
+		tabsPanel.add(tabbedPane);
 
 		frame.add(toolBar, BorderLayout.NORTH);
 		frame.setJMenuBar(menuBar);
@@ -162,26 +167,31 @@ public class View {
 			}
 		});
 
-		tabsPanel.add(tabbedPane);
 		frame.add(mainPanel);
 
-		// loading an image from a file
 		Toolkit defaultToolkit = Toolkit.getDefaultToolkit();
 		URL imageResource = getClass().getResource("/gear.png"); // URL: https://cdn.pixabay.com/photo/2012/05/04/10/57/gear-47203_1280.png
 		Image image = defaultToolkit.getImage(imageResource);
-
 		try {
 			Taskbar taskbar = Taskbar.getTaskbar();
-			// set icon for mac os (and other systems which do support this method)
 			taskbar.setIconImage(image);
 		} catch (UnsupportedOperationException e) {
-			// set icon for windows (and other systems which do support this method)
 			frame.setIconImage(image);
 		}
-
+		
+		if(Taskbar.getTaskbar().isSupported(Taskbar.Feature.MENU)) {
+			PopupMenu popupMenu = new PopupMenu();
+			MenuItem open = new MenuItem("Open...");
+			open.addActionListener(e -> {
+				openDialog();
+			});
+			popupMenu.add(open);
+			popupMenu.addSeparator();
+			Taskbar.getTaskbar().setMenu(popupMenu);
+		}
+		
 		frame.pack();
 		frame.setVisible(true);
-		//openDialog(); // Greet user with JFileChooser to open file
 	}
 
 	private void openDialog() {
@@ -189,6 +199,7 @@ public class View {
 		FileNameExtensionFilter filter = new FileNameExtensionFilter("CSV files (*.csv), Text files (*.txt)", "csv", "txt");
 		fileChooser.setFileFilter(filter);
 		fileChooser.setAcceptAllFileFilterUsed(false);
+		fileChooser.setMultiSelectionEnabled(true);
 		Action details = fileChooser.getActionMap().get("viewTypeDetails");
 		details.actionPerformed(null);
 
@@ -198,8 +209,10 @@ public class View {
 
 		int returnVal = fileChooser.showOpenDialog(frame);
 		if(returnVal == 0) {
-			File path = fileChooser.getSelectedFile();
-			addTablePanel(path);
+			File[] files = fileChooser.getSelectedFiles();
+			for(File path : files) {
+				addTablePanel(path);
+			}
 		}
 	}
 
@@ -453,6 +466,10 @@ public class View {
 
 		toolBar.addSeparator();
 		toolBar.add(Box.createHorizontalStrut(8)); // space between separator and busy label
+		
+		busyLabel = new JXBusyLabel(new Dimension(18, 18)); // dimensions of icons to keep scaled
+		busyLabel.setVisible(false);
+		toolBar.add(busyLabel);
 	}
 
 	class TablePanel extends JPanel {
@@ -505,6 +522,10 @@ public class View {
 
 	public static JToolBar getToolBar() {
 		return toolBar;
+	}
+	
+	public static JXBusyLabel getBusyLabel() {
+		return busyLabel;
 	}
 
 }
