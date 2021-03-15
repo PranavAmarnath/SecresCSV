@@ -203,8 +203,10 @@ public class View {
 		fileChooser.setFileFilter(filter);
 		fileChooser.setAcceptAllFileFilterUsed(false);
 		fileChooser.setMultiSelectionEnabled(true);
-		Action details = fileChooser.getActionMap().get("viewTypeDetails");
-		details.actionPerformed(null);
+		if(fileChooser.getActionMap().get("viewTypeDetails") != null) {
+			Action details = fileChooser.getActionMap().get("viewTypeDetails");
+			details.actionPerformed(null);
+		}
 
 		if(newPanels.get(tabbedPane.getSelectedComponent()) != null) {
 			fileChooser.setCurrentDirectory(newPanels.get(tabbedPane.getSelectedComponent()));
