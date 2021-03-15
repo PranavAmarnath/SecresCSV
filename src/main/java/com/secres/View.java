@@ -14,6 +14,8 @@ import java.awt.MenuItem;
 import java.awt.PopupMenu;
 import java.awt.Taskbar;
 import java.awt.Toolkit;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.awt.print.PrinterException;
 import java.io.File;
@@ -40,6 +42,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
@@ -48,6 +51,8 @@ import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.JTable.PrintMode;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.filechooser.FileSystemView;
@@ -69,9 +74,9 @@ public class View {
 	private static LinkedHashMap<TablePanel, File> newPanels = new LinkedHashMap<>();
 	private JMenuBar menuBar;
 	private JMenu fileMenu, editMenu, viewMenu, helpMenu;
-	private JMenuItem openMenuItem, saveMenuItem, printMenuItem;
+	private JMenuItem openMenuItem, saveMenuItem, printMenuItem, closeMenuItem;
 	private JMenuItem selectAllMenuItem, refreshMenuItem;
-	private JRadioButtonMenuItem lightMenuItem, darkMenuItem;
+	private JRadioButtonMenuItem lightMenuItem, darkMenuItem, systemMenuItem;
 	private JMenuItem aboutMenuItem;
 	private static JXBusyLabel busyLabel;
 
@@ -103,8 +108,7 @@ public class View {
 		tabbedPane.putClientProperty("JTabbedPane.showTabSeparators", true);
 		tabbedPane.putClientProperty("JTabbedPane.tabCloseCallback", (BiConsumer<JTabbedPane, Integer>) (tabbedPane, tabIndex) -> {
 			// close tab here
-			saveDialog();
-			tabbedPane.removeTabAt(tabIndex);
+			closeTab(tabIndex);
 		});
 		tabbedPane.putClientProperty("JTabbedPane.tabCloseToolTipText", "Close");
 
@@ -180,13 +184,12 @@ public class View {
 		}
 		
 		if(Taskbar.getTaskbar().isSupported(Taskbar.Feature.MENU)) {
-			PopupMenu popupMenu = new PopupMenu();
+			PopupMenu popupMenu = new PopupMenu(); // popup menu for macOS dock icon
 			MenuItem open = new MenuItem("Open...");
 			open.addActionListener(e -> {
 				openDialog();
 			});
 			popupMenu.add(open);
-			popupMenu.addSeparator();
 			Taskbar.getTaskbar().setMenu(popupMenu);
 		}
 		
@@ -232,6 +235,11 @@ public class View {
 		tabbedPane.setSelectedIndex(tabbedPane.getTabCount() - 1);
 	}
 
+	private void closeTab(int tabIndex) {
+		saveDialog();
+		tabbedPane.removeTabAt(tabIndex);
+	}
+	
 	private void saveDialog() {
 		int result = JOptionPane.showConfirmDialog(frame, "Do you want to save any changes?", "Save", JOptionPane.YES_NO_OPTION);
 		if(result == JOptionPane.YES_OPTION) {
@@ -269,6 +277,7 @@ public class View {
 		saveMenuItem.setEnabled(enabled);
 		printButton.setEnabled(enabled);
 		printMenuItem.setEnabled(enabled);
+		closeMenuItem.setEnabled(enabled);
 	}
 
 	private void createMenuBar() {
@@ -291,10 +300,18 @@ public class View {
 			print();
 		});
 		printMenuItem.setAccelerator(KeyStroke.getKeyStroke('P', Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
+		closeMenuItem = new JMenuItem("Close");
+		closeMenuItem.setToolTipText("Close current tab");
+		closeMenuItem.addActionListener(e -> {
+			closeTab(tabbedPane.getSelectedIndex());
+		});
+		closeMenuItem.setAccelerator(KeyStroke.getKeyStroke('W', Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
 		fileMenu.add(openMenuItem);
 		fileMenu.add(saveMenuItem);
 		fileMenu.addSeparator();
 		fileMenu.add(printMenuItem);
+		fileMenu.addSeparator();
+		fileMenu.add(closeMenuItem);
 
 		editMenu = new JMenu("Edit");
 		selectAllMenuItem = new JMenuItem("Select All");
@@ -329,8 +346,20 @@ public class View {
 			FlatDarkLaf.install();
 			SwingUtilities.updateComponentTreeUI(frame);
 		});
+		systemMenuItem = new JRadioButtonMenuItem(System.getProperty("os.name"));
+		systemMenuItem.setToolTipText("System theme");
+		themes.add(systemMenuItem);
+		systemMenuItem.addActionListener(e -> {
+			try {
+				UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+			} catch (Exception e1) {
+				e1.printStackTrace();
+			}
+			SwingUtilities.updateComponentTreeUI(frame);
+		});
 		viewMenu.add(lightMenuItem);
 		viewMenu.add(darkMenuItem);
+		viewMenu.add(systemMenuItem);
 
 		helpMenu = new JMenu("Help");
 		aboutMenuItem = new JMenuItem("About SecresCSV");
@@ -345,79 +374,6 @@ public class View {
 		menuBar.add(editMenu);
 		menuBar.add(viewMenu);
 		menuBar.add(helpMenu);
-	}
-
-	static JPanel createAboutPanel() {
-		JPanel mainPanel = new JPanel(new BorderLayout());
-		URL imageResource = Main.class.getResource("/gear.png"); // URL: https://cdn.pixabay.com/photo/2012/05/04/10/57/gear-47203_1280.png
-		BufferedImage img = toBufferedImage(new ImageIcon(imageResource).getImage());
-		JLabel icon = new JLabel();
-		icon.setIcon(new ImageIcon(img));
-		Image dimg = img.getScaledInstance(49, 51, Image.SCALE_SMOOTH);
-		icon.setIcon(new ImageIcon(dimg));
-		JPanel imgPanel = new JPanel();
-		imgPanel.add(icon);
-		mainPanel.add(imgPanel);
-
-		JPanel namePanel = new JPanel();
-		JXHyperlink nameLink = new JXHyperlink();
-		nameLink.setText("SecresCSV");
-		nameLink.setToolTipText("SecresCSV\nhttps://github.com/PranavAmarnath/SecresCSV");
-		nameLink.addActionListener(e -> {
-			Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
-			if (desktop != null && desktop.isSupported(Desktop.Action.BROWSE)) {
-				try {
-					desktop.browse(new URI("https://github.com/PranavAmarnath/SecresCSV"));
-					nameLink.setClicked(true);
-					nameLink.setClickedColor(new Color(70, 39, 89)); // purple
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				} catch (URISyntaxException e1) {
-					e1.printStackTrace();
-				}
-			}
-		});
-		namePanel.add(nameLink, SwingConstants.CENTER);
-		JPanel versionPanel = new JPanel();
-		JLabel versionLabel = new JLabel("Version 2.0", SwingConstants.CENTER);
-		versionPanel.add(versionLabel);
-		JPanel copyrightPanel = new JPanel();
-		JLabel copyrightLabel = new JLabel("<html>Copyright \u00a9 2021 Pranav Amarnath<br><div style='text-align: center;'>All Rights Reserved.</div></html>", SwingConstants.CENTER);
-		copyrightPanel.add(copyrightLabel);
-
-		JPanel productPanel = new JPanel();
-		productPanel.setLayout(new BoxLayout(productPanel, BoxLayout.PAGE_AXIS));
-		productPanel.add(namePanel);
-		productPanel.add(versionPanel);
-		productPanel.add(copyrightPanel);
-		mainPanel.add(productPanel, BorderLayout.SOUTH);
-		mainPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-
-		return mainPanel;
-	}
-
-	/**
-	 * Converts a given Image into a BufferedImage
-	 * 
-	 * @param img The Image to be converted
-	 * @return The converted <code>BufferedImage</code>
-	 */
-	private static BufferedImage toBufferedImage(Image img) {
-		/** Reference: @see https://stackoverflow.com/a/13605411 */
-		if (img instanceof BufferedImage) {
-			return (BufferedImage) img;
-		}
-
-		// Create a buffered image with transparency
-		BufferedImage bimage = new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
-
-		// Draw the image on to the buffered image
-		Graphics2D bGr = bimage.createGraphics();
-		bGr.drawImage(img, 0, 0, null);
-		bGr.dispose();
-
-		// Return the buffered image
-		return bimage;
 	}
 
 	private void createToolBar() {
@@ -472,6 +428,83 @@ public class View {
 		toolBar.add(busyLabel);
 	}
 
+	static JPanel createAboutPanel() {
+		JPanel mainPanel = new JPanel(new BorderLayout());
+		URL imageResource = Main.class.getResource("/gear.png"); // URL: https://cdn.pixabay.com/photo/2012/05/04/10/57/gear-47203_1280.png
+		BufferedImage img = toBufferedImage(new ImageIcon(imageResource).getImage());
+		JLabel icon = new JLabel();
+		icon.setIcon(new ImageIcon(img));
+		Image dimg = img.getScaledInstance(49, 51, Image.SCALE_SMOOTH);
+		icon.setIcon(new ImageIcon(dimg));
+		JPanel imgPanel = new JPanel();
+		imgPanel.add(icon);
+		mainPanel.add(imgPanel);
+
+		JPanel namePanel = new JPanel();
+		JXHyperlink nameLink = new JXHyperlink();
+		nameLink.setText("SecresCSV");
+		nameLink.setToolTipText("<html>SecresCSV<br>https://github.com/PranavAmarnath/SecresCSV</html>");
+		nameLink.addActionListener(e -> {
+			Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
+			if (desktop != null && desktop.isSupported(Desktop.Action.BROWSE)) {
+				try {
+					desktop.browse(new URI("https://github.com/PranavAmarnath/SecresCSV"));
+					nameLink.setClicked(true);
+					nameLink.setClickedColor(new Color(70, 39, 89)); // purple
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				} catch (URISyntaxException e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
+		namePanel.add(nameLink, SwingConstants.CENTER);
+		JPanel versionPanel = new JPanel();
+		JLabel versionLabel = new JLabel("Version 2.0", SwingConstants.CENTER);
+		versionLabel.setForeground(new Color(150, 150, 150));
+		versionLabel.setFont(new Font("SansSerif", Font.BOLD, 11));
+		versionPanel.add(versionLabel);
+		JPanel copyrightPanel = new JPanel();
+		JLabel copyrightLabel = new JLabel("<html>Copyright \u00a9 2021 Pranav Amarnath<br><div style='text-align: center;'>All Rights Reserved.</div></html>", SwingConstants.CENTER);
+		copyrightLabel.setForeground(new Color(150, 150, 150));
+		copyrightLabel.setFont(new Font("SansSerif", Font.BOLD, 11));
+		copyrightPanel.add(copyrightLabel);
+
+		JPanel productPanel = new JPanel();
+		productPanel.setLayout(new BoxLayout(productPanel, BoxLayout.PAGE_AXIS));
+		productPanel.add(namePanel);
+		productPanel.add(versionPanel);
+		productPanel.add(copyrightPanel);
+		mainPanel.add(productPanel, BorderLayout.SOUTH);
+		mainPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+
+		return mainPanel;
+	}
+
+	/**
+	 * Converts a given Image into a BufferedImage
+	 * 
+	 * @param img The Image to be converted
+	 * @return The converted <code>BufferedImage</code>
+	 */
+	private static BufferedImage toBufferedImage(Image img) {
+		/** Reference: @see https://stackoverflow.com/a/13605411 */
+		if (img instanceof BufferedImage) {
+			return (BufferedImage) img;
+		}
+
+		// Create a buffered image with transparency
+		BufferedImage bimage = new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+
+		// Draw the image on to the buffered image
+		Graphics2D bGr = bimage.createGraphics();
+		bGr.drawImage(img, 0, 0, null);
+		bGr.dispose();
+
+		// Return the buffered image
+		return bimage;
+	}
+	
 	class TablePanel extends JPanel {
 		/**
 		 * 
@@ -502,10 +535,6 @@ public class View {
 		public JTable getTable() {
 			return table;
 		}
-
-		public JScrollPane getScrollPane() {
-			return scrollPane;
-		}
 	}
 
 	public static JTabbedPane getTabbedPane() {
@@ -514,14 +543,6 @@ public class View {
 
 	public static JFrame getFrame() {
 		return frame;
-	}
-
-	public static LinkedHashMap<TablePanel, File> getPanels() {
-		return newPanels;
-	}
-
-	public static JToolBar getToolBar() {
-		return toolBar;
 	}
 	
 	public static JXBusyLabel getBusyLabel() {

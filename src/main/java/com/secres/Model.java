@@ -86,7 +86,7 @@ public class Model {
 						JOptionPane.showMessageDialog(View.getFrame(), "Refreshed data.");
 					}
 					else {
-						JOptionPane.showMessageDialog(View.getFrame(), "Finished loading data.");
+						JOptionPane.showMessageDialog(View.getFrame(), "Finished loading " + path.getName());
 					}
 					reader.close();
 				} catch (IOException e) {
@@ -115,7 +115,9 @@ public class Model {
 			@Override
 			protected void done() {
 				removeBusyLabel();
-				JOptionPane.showMessageDialog(View.getFrame(), "Finished saving file.");
+				int index = path.lastIndexOf('\\');
+				String fileName = path.substring(index + 1, path.length());
+				JOptionPane.showMessageDialog(View.getFrame(), "Finished saving " + fileName);
 			}
 		}.execute();
 	}
