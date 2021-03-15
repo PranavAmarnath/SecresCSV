@@ -15,6 +15,7 @@ import java.io.IOException;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.JTextPane;
+import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
@@ -48,7 +49,7 @@ public class Model {
 	 * @param table  The table
 	 * @param refresh  If the user is refreshing (true) or if it's the first load (false)
 	 */
-	public Model(File path, JTable table, boolean refresh) {
+	public Model(File path, JTable table, boolean refresh, boolean isLastFile) {
 		createBusyLabel();
 		class Worker extends SwingWorker<Void, String> {
 			@Override
@@ -80,7 +81,9 @@ public class Model {
 			@Override
 			protected void done() {
 				try {
-					removeBusyLabel();
+					if(isLastFile) {
+						removeBusyLabel(); // remove the busy label only after the last file (largest file) is over
+					}
 					if(refresh == true) {
 						((TablePanel) View.getTabbedPane().getSelectedComponent()).getTable().setModel(model);
 						JOptionPane.showMessageDialog(View.getFrame(), "Refreshed data.");

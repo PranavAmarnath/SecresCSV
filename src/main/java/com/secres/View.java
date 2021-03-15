@@ -24,6 +24,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.MessageFormat;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.function.BiConsumer;
 
@@ -165,8 +167,16 @@ public class View {
 
 		new FileDrop(emptyPanel, new FileDrop.Listener() {
 			public void filesDropped(java.io.File[] files) {
-				for(File file : files) {
-					addTablePanel(file);
+				Arrays.sort(files, new FileSizeComparator()); // sort so that largest files are processed last
+				int i = 0;
+				for(File path : files) {
+					if(i == files.length-1) { // check if it's the last file
+						addTablePanel(path, true);
+					}
+					else {
+						addTablePanel(path, false);
+					}
+					i++;
 				}
 			}
 		});
@@ -196,6 +206,22 @@ public class View {
 		frame.pack();
 		frame.setVisible(true);
 	}
+	
+	/** Sorter class based on file size so that largest files are processed last */
+	public class FileSizeComparator implements Comparator<File> {
+		// see: https://stackoverflow.com/a/8107018/13772184
+		@Override
+	    public int compare(File a, File b) {
+	        long aSize = a.length();
+	        long bSize = b.length();
+	        if (aSize == bSize) {
+	            return 0;
+	        }
+	        else {
+	            return Long.compare(aSize, bSize);
+	        }
+	    }
+	}
 
 	private void openDialog() {
 		JFileChooser fileChooser = new JFileChooser();
@@ -215,13 +241,21 @@ public class View {
 		int returnVal = fileChooser.showOpenDialog(frame);
 		if(returnVal == 0) {
 			File[] files = fileChooser.getSelectedFiles();
+			Arrays.sort(files, new FileSizeComparator()); // sort so that largest files are processed last
+			int i = 0;
 			for(File path : files) {
-				addTablePanel(path);
+				if(i == files.length-1) { // check if it's the last file
+					addTablePanel(path, true);
+				}
+				else {
+					addTablePanel(path, false);
+				}
+				i++;
 			}
 		}
 	}
 
-	private void addTablePanel(File path) {
+	private void addTablePanel(File path, boolean isLastFile) {
 		TablePanel newPanel = new TablePanel();
 		newPanels.put(newPanel, path);
 		if(tabbedPane.getTabCount() > 0) {
@@ -233,7 +267,7 @@ public class View {
 			}
 		}
 		tabbedPane.addTab(path.getName(), FileSystemView.getFileSystemView().getSystemIcon(path), (Component) newPanels.keySet().toArray()[newPanels.size()-1]);
-		Main.createModelLoad(path, ((TablePanel) newPanels.keySet().toArray()[newPanels.size()-1]).getTable());
+		Main.createModelLoad(path, ((TablePanel) newPanels.keySet().toArray()[newPanels.size()-1]).getTable(), false, isLastFile);
 		tabbedPane.setSelectedIndex(tabbedPane.getTabCount() - 1);
 	}
 
@@ -268,7 +302,7 @@ public class View {
 	}
 
 	private void refresh() {
-		Main.createModelRefresh(newPanels.get((TablePanel) tabbedPane.getSelectedComponent()), ((TablePanel) tabbedPane.getSelectedComponent()).getTable());
+		Main.createModelLoad(newPanels.get((TablePanel) tabbedPane.getSelectedComponent()), ((TablePanel) tabbedPane.getSelectedComponent()).getTable(), true, true);
 	}
 
 	private void enableItems(boolean enabled) {

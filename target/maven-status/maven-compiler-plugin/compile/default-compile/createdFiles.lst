@@ -12,6 +12,7 @@ com\secres\Main.class
 com\secres\View.class
 com\secres\View$TablePanel.class
 com\secres\FileDrop$TransferableObject.class
+com\secres\View$FileSizeComparator.class
 com\secres\RowNumberTable$RowNumberRenderer.class
 com\secres\FileDrop$Event.class
 com\secres\FileDrop$TransferableObject$Fetcher.class
