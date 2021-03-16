@@ -66,6 +66,7 @@ import org.jdesktop.swingx.JXBusyLabel;
 import org.jdesktop.swingx.JXHyperlink;
 
 import com.formdev.flatlaf.FlatDarkLaf;
+import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.secres.ext.FileDrop;
@@ -322,6 +323,13 @@ public class View {
 		closeMenuItem.setEnabled(enabled);
 	}
 
+	private void showTableGrids() {
+		for(int i = 0; i < newPanels.size(); i++) {
+			((TablePanel) newPanels.keySet().toArray()[i]).getTable().setShowGrid(true);
+			((TablePanel) newPanels.keySet().toArray()[i]).getRowTable().setShowGrid(true);
+		}
+	}
+	
 	private void createMenuBar() {
 		fileMenu = new JMenu("File");
 		openMenuItem = new JMenuItem("Open...");
@@ -385,14 +393,16 @@ public class View {
 		themes.add(lightMenuItem);
 		lightMenuItem.addActionListener(e -> {
 			FlatLightLaf.install();
-			SwingUtilities.updateComponentTreeUI(frame);
+			FlatLaf.updateUI();
+			showTableGrids();
 		});
 		darkMenuItem = new JRadioButtonMenuItem("Dark");
 		darkMenuItem.setToolTipText("Dark theme");
 		themes.add(darkMenuItem);
 		darkMenuItem.addActionListener(e -> {
 			FlatDarkLaf.install();
-			SwingUtilities.updateComponentTreeUI(frame);
+			FlatLaf.updateUI();
+			showTableGrids();
 		});
 		systemMenuItem = new JRadioButtonMenuItem(System.getProperty("os.name"));
 		systemMenuItem.setToolTipText("System theme");
@@ -403,7 +413,8 @@ public class View {
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
-			SwingUtilities.updateComponentTreeUI(frame);
+			FlatLaf.updateUI();
+			showTableGrids();
 		});
 		viewMenu.add(lightMenuItem);
 		viewMenu.add(darkMenuItem);
@@ -559,6 +570,7 @@ public class View {
 		 */
 		private static final long serialVersionUID = -3961573416357564849L;
 		private JTable table = new JTable();
+		private RowNumberTable rowTable;
 		private JScrollPane scrollPane;
 
 		public TablePanel() {
@@ -574,7 +586,7 @@ public class View {
 			new TableColumnManager(table);
 
 			scrollPane = new JScrollPane(table);
-			RowNumberTable rowTable = new RowNumberTable(table);
+			rowTable = new RowNumberTable(table);
 			rowTable.setShowGrid(true);
 			scrollPane.setRowHeaderView(rowTable);
 			scrollPane.setCorner(JScrollPane.UPPER_LEFT_CORNER, rowTable.getTableHeader());
@@ -584,6 +596,10 @@ public class View {
 
 		public JTable getTable() {
 			return table;
+		}
+		
+		public RowNumberTable getRowTable() {
+			return rowTable;
 		}
 	}
 
