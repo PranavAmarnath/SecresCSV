@@ -20,7 +20,7 @@
             <configuration>
               <transformers>
                 <transformer>
-                  <mainClass>com.secres.Main</mainClass>
+                  <mainClass>com.secres.main.Main</mainClass>
                 </transformer>
               </transformers>
             </configuration>
