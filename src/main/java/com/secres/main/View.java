@@ -82,7 +82,7 @@ public class View {
 	private static LinkedHashMap<TablePanel, File> newPanels = new LinkedHashMap<>();
 	private JMenuBar menuBar;
 	private JMenu fileMenu, editMenu, viewMenu, helpMenu;
-	private JMenuItem openMenuItem, saveMenuItem, printMenuItem, closeMenuItem;
+	private JMenuItem openMenuItem, saveMenuItem, printMenuItem, closeMenuItem, exitMenuItem;
 	private JMenuItem selectAllMenuItem, refreshMenuItem;
 	private JRadioButtonMenuItem lightMenuItem, darkMenuItem, systemMenuItem;
 	private JMenuItem aboutMenuItem;
@@ -324,19 +324,19 @@ public class View {
 
 	private void createMenuBar() {
 		fileMenu = new JMenu("File");
-		openMenuItem = new JMenuItem("Open...", new FlatSVGIcon("open.svg"));
+		openMenuItem = new JMenuItem("Open...");
 		openMenuItem.setToolTipText("Open file");
 		openMenuItem.addActionListener(e -> {
 			openDialog();
 		});
 		openMenuItem.setAccelerator(KeyStroke.getKeyStroke('O', Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
-		saveMenuItem = new JMenuItem("Save", new FlatSVGIcon("save.svg"));
+		saveMenuItem = new JMenuItem("Save");
 		saveMenuItem.setToolTipText("Save table");
 		saveMenuItem.addActionListener(e -> {
 			save();
 		});
 		saveMenuItem.setAccelerator(KeyStroke.getKeyStroke('S', Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
-		printMenuItem = new JMenuItem("Print...", new FlatSVGIcon("print.svg"));
+		printMenuItem = new JMenuItem("Print...");
 		printMenuItem.setToolTipText("Print table");
 		printMenuItem.addActionListener(e -> {
 			print();
@@ -348,12 +348,18 @@ public class View {
 			closeTab(tabbedPane.getSelectedIndex());
 		});
 		closeMenuItem.setAccelerator(KeyStroke.getKeyStroke('W', Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
+		exitMenuItem = new JMenuItem("Exit");
+		exitMenuItem.setToolTipText("Quit SecresCSV");
+		exitMenuItem.addActionListener(e -> {
+			System.exit(0);
+		});
 		fileMenu.add(openMenuItem);
+		fileMenu.add(closeMenuItem);
 		fileMenu.add(saveMenuItem);
 		fileMenu.addSeparator();
 		fileMenu.add(printMenuItem);
 		fileMenu.addSeparator();
-		fileMenu.add(closeMenuItem);
+		fileMenu.add(exitMenuItem);
 
 		editMenu = new JMenu("Edit");
 		selectAllMenuItem = new JMenuItem("Select All");
