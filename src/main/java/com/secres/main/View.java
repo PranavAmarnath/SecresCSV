@@ -190,7 +190,7 @@ public class View {
 		frame.add(mainPanel);
 
 		Toolkit defaultToolkit = Toolkit.getDefaultToolkit();
-		URL imageResource = getClass().getResource("/gear.png"); // URL: https://cdn.pixabay.com/photo/2012/05/04/10/57/gear-47203_1280.png
+		URL imageResource = getClass().getResource("/icons8-slider-1024.png"); // URL: https://cdn.pixabay.com/photo/2012/05/04/10/57/gear-47203_1280.png
 		Image image = defaultToolkit.getImage(imageResource);
 		try {
 			Taskbar taskbar = Taskbar.getTaskbar();
@@ -478,11 +478,11 @@ public class View {
 
 	static JPanel createAboutPanel() {
 		JPanel mainPanel = new JPanel(new BorderLayout());
-		URL imageResource = Main.class.getResource("/gear.png"); // URL: https://cdn.pixabay.com/photo/2012/05/04/10/57/gear-47203_1280.png
+		URL imageResource = View.class.getResource("/icons8-slider-1024.png"); // URL: https://cdn.pixabay.com/photo/2012/05/04/10/57/gear-47203_1280.png
 		BufferedImage img = toBufferedImage(new ImageIcon(imageResource).getImage());
 		JLabel icon = new JLabel();
 		icon.setIcon(new ImageIcon(img));
-		Image dimg = img.getScaledInstance(49, 51, Image.SCALE_SMOOTH);
+		Image dimg = img.getScaledInstance(100, 100, Image.SCALE_SMOOTH);
 		icon.setIcon(new ImageIcon(dimg));
 		JPanel imgPanel = new JPanel();
 		imgPanel.add(icon);
@@ -513,7 +513,7 @@ public class View {
 		versionLabel.setFont(new Font("SansSerif", Font.BOLD, 11));
 		versionPanel.add(versionLabel);
 		JPanel copyrightPanel = new JPanel();
-		JLabel copyrightLabel = new JLabel("<html>Copyright \u00a9 2021 Pranav Amarnath<br><div style='text-align: center;'>All Rights Reserved.</div></html>", SwingConstants.CENTER);
+		JLabel copyrightLabel = new JLabel("<html>Copyright \u00a9 2021 Pranav Amarnath<br><div style='text-align: center;'>All Rights Reserved.</div><br><div style='text-align: center;'>\"Slider Icon\" Provided By Icons8.</div></html>", SwingConstants.CENTER);
 		copyrightLabel.setForeground(new Color(150, 150, 150));
 		copyrightLabel.setFont(new Font("SansSerif", Font.BOLD, 11));
 		copyrightPanel.add(copyrightLabel);
