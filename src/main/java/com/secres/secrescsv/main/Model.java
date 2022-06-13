@@ -2,7 +2,6 @@ package com.secres.secrescsv.main;
 
 import com.opencsv.*;
 import com.opencsv.exceptions.CsvValidationException;
-import com.secres.secrescsv.main.View.TablePanel;
 
 import java.awt.Taskbar;
 import java.awt.Taskbar.State;
@@ -12,10 +11,12 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.JTextPane;
 import javax.swing.SwingWorker;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 
@@ -40,7 +41,7 @@ public class Model {
 	/** OpenCSV parser */
 	private CSVReader reader;
 	/** Current line */
-	private String[] line;
+	private Object[] line;
 	
 	/**
 	 * Model constructor to load CSV data
@@ -59,18 +60,39 @@ public class Model {
 					showError("File Not Found :(", e1);
 				}
 				try {
-					header = (String[]) reader.readNext();
+                    header = reader.readNext();
+				    Object[] headerWithRowNum = new Object[header.length + 1];
+				    headerWithRowNum[0] = "#";
+                    for(int i = 1; i < headerWithRowNum.length; i++) {
+                        headerWithRowNum[i] = header[i-1];
+                    }
+                    header = headerWithRowNum;
 				} catch (CsvValidationException e1) {
 					showError("CSV Not Validated :(", e1);
 				} catch (IOException e1) {
 					showError("I/O Exception :(", e1);
 				}
 				//SwingUtilities.invokeAndWait(() -> model = new DefaultTableModel(header, 0)); // NOT invokeLater() because model HAS to be initialized immediately on EDT
-				model = new DefaultTableModel(header, 0);
+				model = new DefaultTableModel(header, 0) {
+                    private static final long serialVersionUID = -4147142493942463884L;
+
+                    @Override
+		            public boolean isCellEditable(int row, int column) {
+		                return column != 0;
+		            }
+				};
 				table.setModel(model);
 				try {
+				    int i = 1;
 					while((line = reader.readNext()) != null) {
+					    Object[] lineWithRowNum = new Object[line.length + 1];
+					    lineWithRowNum[0] = i;
+					    for(int j = 1; j < lineWithRowNum.length; j++) {
+					        lineWithRowNum[j] = line[j-1];
+					    }
+					    line = lineWithRowNum;
 						model.addRow(line);
+						i++;
 				    }
 				} catch(Exception e) {
 					showError("An Exception Occurred :(", e);
@@ -80,11 +102,15 @@ public class Model {
 			@Override
 			protected void done() {
 				try {
+				    table.requestFocusInWindow();
+				    DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+				    centerRenderer.setHorizontalAlignment(JLabel.CENTER);
+				    table.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
 					if(isLastFile) {
 						removeBusyLabel(); // remove the busy label only after the last file (largest file) is over
 					}
 					if(refresh == true) {
-						((TablePanel) View.getTabbedPane().getSelectedComponent()).getTable().setModel(model);
+						table.setModel(model);
 						JOptionPane.showMessageDialog(View.getFrame(), "Refreshed data.");
 					}
 					else {
@@ -134,7 +160,7 @@ public class Model {
 	        TableModel model = tableToExport.getModel();
 	        FileWriter csv = new FileWriter(new File(pathToExportTo));
 
-	        for(int i = 0; i < model.getColumnCount(); i++) {
+	        for(int i = 1; i < model.getColumnCount(); i++) {
 	        	if(i != model.getColumnCount() - 1) {
 	        		csv.write(model.getColumnName(i) + ",");
 	        	}
@@ -146,7 +172,7 @@ public class Model {
 	        csv.write("\n");
 
 	        for(int i = 0; i < model.getRowCount(); i++) {
-	            for(int j = 0; j < model.getColumnCount(); j++) {
+	            for(int j = 1; j < model.getColumnCount(); j++) {
 	            	if(j != model.getColumnCount() - 1) {
 	            		csv.write(model.getValueAt(i, j).toString() + ",");
 	            	}
@@ -159,7 +185,7 @@ public class Model {
 
 	        csv.close();
 	    } catch (IOException e) {
-	    	showError("I/O Exception :(", e);
+	    	showError("IOException :(", e);
 	    }
 	}
 	

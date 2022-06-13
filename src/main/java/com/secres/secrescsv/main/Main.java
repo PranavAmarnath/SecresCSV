@@ -1,14 +1,14 @@
 package com.secres.secrescsv.main;
 
 import java.awt.Desktop;
+import java.awt.Dimension;
 import java.io.File;
 
-import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 
 import com.formdev.flatlaf.FlatLightLaf;
 
@@ -24,6 +24,10 @@ public class Main {
 		System.setProperty("apple.awt.application.appearance", "system");
 		System.setProperty("apple.awt.antialiasing", "true");
 		System.setProperty("apple.awt.textantialiasing", "true");
+		System.setProperty("flatlaf.useWindowDecorations", "false");
+		UIManager.put("Table.showHorizontalLines", true);
+		UIManager.put("Table.showVerticalLines", true);
+		UIManager.put("Table.intercellSpacing", new Dimension(1, 1));
 		/*
 		if(System.getProperty("os.name").toLowerCase().contains("win")) {
 			JFrame.setDefaultLookAndFeelDecorated(true);
@@ -49,7 +53,7 @@ public class Main {
 			} catch (Exception e) { e.printStackTrace(); }
 		}
 		SwingUtilities.invokeLater(() -> {
-			FlatLightLaf.install();
+			FlatLightLaf.setup();
 			new Main();
 		});
 	}
