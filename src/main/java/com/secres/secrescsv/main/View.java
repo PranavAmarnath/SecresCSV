@@ -46,7 +46,6 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
-import javax.swing.JTable;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
@@ -599,10 +598,12 @@ public class View {
             setLayout(new BorderLayout());
 
             table.setShowGrid(true);
-            table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+            table.setAutoResizeMode(JXTable.AUTO_RESIZE_OFF);
             try {
                 table.setAutoCreateRowSorter(true);
-            } catch (Exception e) { /* Move on (i.e. ignore sorting if exception occurs) */ }
+            } catch (Exception e) { /* Move on (i.e. ignore sorting if exception occurs) */ 
+                e.printStackTrace();
+            }
             table.setCellSelectionEnabled(true);
 
             //new TableColumnManager(table);
@@ -616,7 +617,7 @@ public class View {
             add(scrollPane);
         }
 
-        public JTable getTable() {
+        public JXTable getTable() {
             return table;
         }
 

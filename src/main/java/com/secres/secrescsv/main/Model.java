@@ -13,17 +13,19 @@ import java.io.IOException;
 
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import javax.swing.JTable;
 import javax.swing.JTextPane;
 import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 
+import org.jdesktop.swingx.JXTable;
+import org.jdesktop.swingx.renderer.DefaultTableRenderer;
+
 /**
  * The <code>Model</code> class defines all I/O from the CSV files.
  * <P>
- * Each instance of <code>Model</code> spawns a new {@link SwingWorker} for adding each new row to the current <code>JTable</code>'s <code>TableModel</code>
+ * Each instance of <code>Model</code> spawns a new {@link SwingWorker} for adding each new row to the current <code>JXTable</code>'s <code>TableModel</code>
  * <P>
  * 
  * The class also manages exporting table data to a CSV file.
@@ -49,7 +51,7 @@ public class Model {
 	 * @param table  The table
 	 * @param refresh  If the user is refreshing (true) or if it's the first load (false)
 	 */
-	public Model(File path, JTable table, boolean refresh, boolean isLastFile) {
+	public Model(File path, JXTable table, boolean refresh, boolean isLastFile) {
 		createBusyLabel();
 		class Worker extends SwingWorker<Void, String> {
 			@Override
@@ -103,9 +105,6 @@ public class Model {
 			protected void done() {
 				try {
 				    table.requestFocusInWindow();
-				    DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
-				    centerRenderer.setHorizontalAlignment(JLabel.CENTER);
-				    table.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
 					if(isLastFile) {
 						removeBusyLabel(); // remove the busy label only after the last file (largest file) is over
 					}
@@ -127,12 +126,12 @@ public class Model {
 	}
 	
 	/**
-	 * Executes {@link #exportToCSV(String, JTable)} on a SwingWorker after creating the busy label
+	 * Executes {@link #exportToCSV(String, JXTable)} on a SwingWorker after creating the busy label
 	 * @param path  The path to export to
 	 * @param table  The table to export
-	 * @see #save(String, JTable)
+	 * @see #save(String, JXTable)
 	 */
-	static void save(String path, JTable table) {
+	static void save(String path, JXTable table) {
 		createBusyLabel();
 		new SwingWorker<Void, String>() {
 			@Override
@@ -155,7 +154,7 @@ public class Model {
 	 * @param pathToExportTo  The path to export to
 	 * @param tableToExport  The table to export
 	 */
-	private static void exportToCSV(String pathToExportTo, JTable tableToExport) {
+	private static void exportToCSV(String pathToExportTo, JXTable tableToExport) {
 	    try {
 	        TableModel model = tableToExport.getModel();
 	        FileWriter csv = new FileWriter(new File(pathToExportTo));

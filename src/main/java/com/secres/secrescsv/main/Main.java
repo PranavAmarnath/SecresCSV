@@ -6,9 +6,10 @@ import java.io.File;
 
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+
+import org.jdesktop.swingx.JXTable;
 
 import com.formdev.flatlaf.FlatLightLaf;
 
@@ -58,11 +59,11 @@ public class Main {
 		});
 	}
 
-	public static void createModelLoad(File PATH, JTable table, boolean refresh, boolean isLastFile) {
+	public static void createModelLoad(File PATH, JXTable table, boolean refresh, boolean isLastFile) {
 		new Model(PATH, table, refresh, isLastFile);
 	}
 
-	public static void saveModel(String PATH, JTable table) {
+	public static void saveModel(String PATH, JXTable table) {
 		Model.save(PATH, table);
 	}
 
