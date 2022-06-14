@@ -27,7 +27,7 @@ Libraries:
 How the application looks:
 <p align="left">
       <img src="https://user-images.githubusercontent.com/64337291/173295138-797786be-f705-4637-9a46-861c2faf74d7.png" width="370" />
-      <img src="https://user-images.githubusercontent.com/64337291/173295016-4094cd63-da92-4d42-a474-74c032880386.png" width="370" /> 
+      <img src="https://user-images.githubusercontent.com/64337291/173429621-5fc88ee7-9408-4b09-9adf-d7ec3fbaa14c.png" width="370" /> 
 </p>
 
 ###### <sup>1</sup>  Tested with a 382MB file
