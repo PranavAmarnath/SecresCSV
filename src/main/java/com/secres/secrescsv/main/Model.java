@@ -75,14 +75,7 @@ public class Model {
 					showError("I/O Exception :(", e1);
 				}
 				//SwingUtilities.invokeAndWait(() -> model = new DefaultTableModel(header, 0)); // NOT invokeLater() because model HAS to be initialized immediately on EDT
-				model = new DefaultTableModel(header, 0) {
-                    private static final long serialVersionUID = -4147142493942463884L;
-
-                    @Override
-		            public boolean isCellEditable(int row, int column) {
-		                return column != 0;
-		            }
-				};
+				model = new DefaultTableModel(header, 0);
 				table.setModel(model);
 				try {
 				    int i = 1;
@@ -109,6 +102,9 @@ public class Model {
 						removeBusyLabel(); // remove the busy label only after the last file (largest file) is over
 					}
 					if(refresh == true) {
+					    if(table.isEditing() && !table.getCellEditor().stopCellEditing()) {
+					        table.getCellEditor().cancelCellEditing();
+					    }
 						table.setModel(model);
 						JOptionPane.showMessageDialog(View.getFrame(), "Refreshed data.");
 					}

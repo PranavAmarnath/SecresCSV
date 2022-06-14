@@ -46,6 +46,7 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JTable;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
@@ -565,7 +566,15 @@ public class View {
         
         private JXTable table = new JXTable() {
             private static final long serialVersionUID = -971240095210811807L;
+            private boolean inLayout = false;
 
+            @Override
+            public void doLayout() {
+                inLayout = true;
+                super.doLayout();
+                inLayout = false;
+            }
+            
             @Override
             public void columnMarginChanged(ChangeEvent e) {
                 // implements the change in this method from JTable
@@ -576,7 +585,7 @@ public class View {
                 TableColumn resizingColumn = tableHeader.getResizingColumn();
                 // Need to do this here, before the parent's
                 // layout manager calls getPreferredSize().
-                if(resizingColumn != null && autoResizeMode == AUTO_RESIZE_OFF) {
+                if(resizingColumn != null && autoResizeMode == AUTO_RESIZE_OFF && !inLayout) {
                     resizingColumn.setPreferredWidth(resizingColumn.getWidth());
                 }
                 resizeAndRepaint();

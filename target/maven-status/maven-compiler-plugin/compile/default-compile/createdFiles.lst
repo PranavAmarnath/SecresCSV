@@ -16,7 +16,6 @@ com\secres\secrescsv\ext\TableColumnManager$SelectPopupMenu$1.class
 com\secres\secrescsv\main\View$1.class
 com\secres\secrescsv\main\Main.class
 com\secres\secrescsv\main\View.class
-com\secres\secrescsv\main\Model$1Worker$1.class
 com\secres\secrescsv\ext\TableColumnManager$SelectPopupMenu.class
 com\secres\secrescsv\ext\FileDrop$Listener.class
 com\secres\secrescsv\ext\FileDrop$TransferableObject.class
